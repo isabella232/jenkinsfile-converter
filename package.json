@@ -1,0 +1,26 @@
+{
+  "name": "jenkins-to-cci",
+  "version": "0.0.1",
+  "description": "POC converting declarative Jenkinsfile pipelines to CircleCI 2.0 Config",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johnstonjacob/jenkins-to-cci.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/johnstonjacob/jenkins-to-cci/issues"
+  },
+  "homepage": "https://github.com/johnstonjacob/jenkins-to-cci#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "^7.0.0"
+  }
+}
