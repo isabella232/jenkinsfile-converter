@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "prettier": "prettier ./**/*.js --write"
   },
   "repository": {
     "type": "git",

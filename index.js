@@ -7,8 +7,6 @@ const cci = require('./util/circleci.js');
 const { openFile } = require('./util/file.js');
 const { verifyValid } = require('./util/jenkins.js');
 
-// TODO: Detect if file is declarative
-
 // TODO: Groovy library to interact with Jenkinsfiles?
 // TODO: YAML Library to handle output?
 
@@ -18,11 +16,14 @@ function main() {
   const config = [cfg.generateHeader(), 'version: 2.1', cci.executors()];
   const path = process.argv[2];
 
-  const [valid, reason] = verifyValid(openFile(path));
-
-  if (!valid) {
-    console.exit('test');
+  if (!verifyValid(openFile(path))) {
+    console.error(
+      'Invalid configuration. This tool only supports Jenkinsfiles using declarative pipelines.'
+    );
+    exit(1);
   }
+
+  //TODO: write to file
   console.log(config.join(''));
 }
 

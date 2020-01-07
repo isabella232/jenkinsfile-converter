@@ -8,12 +8,25 @@ function verifyValid(j) {
     l = removeComments(l);
     if (l.trim()) {
       // TODO: fix this logic, very naive implementation
-      if (l.includes('pipeline')) break;
+
+      if (checkDirective(l, 'pipeline')) {
+        return isBalanced(j);
+      }
     }
   }
 
-  return [isBalanced(j), null];
+  // TODO: probably helpful to return why this step failed
+  return false;
 }
+
+// TODO: needs testing and sanity check
+const pullDirective = (l) => {
+  if (l.trim().endsWith('{')) {
+    return l.substring(0, l.indexOf('{'));
+  }
+};
+
+const checkDirective = (l, d) => l.trim().startsWith(d) && l.trim().endsWith('{');
 
 // isBalanced verifies that brackets are balanaced throughout the config
 function isBalanced([...str]) {
