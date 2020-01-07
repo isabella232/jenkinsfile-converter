@@ -5,23 +5,23 @@ const comment = (text) => `#${text}\n`;
 const padding = (x) => ' '.repeat(x);
 
 // Given a number of strings, return a YAML multiline comment string
-function multilineComment(...text) {
+const multilineComment = (...text) => {
   return text
     .map((k) => {
       return comment(` ${k}`);
     })
     .join('');
-}
+};
 
 // Provide an error message comment
-function errorComment(reason, refLine, numLine) {
+const errorComment = (reason, refLine, numLine) => {
   // TODO: What would cause a reason to not be provided? Who is the owner?
   reason = reason
     ? reason
     : 'Something weird happened. Please contact $MAIN_CONTACT with your config and this message.';
 
   return multilineComment(`ERROR: ${reason}`, `Line #${numLine}:${refLine}`);
-}
+};
 
 // Generates the disclaimer at the start of the config file
 const generateHeader = () =>
