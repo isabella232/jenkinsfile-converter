@@ -1,3 +1,4 @@
+
 pipeline {
   agent any
 
@@ -12,7 +13,7 @@ pipeline {
           if (res != null) {
             echo "Setting build result ${res}"
             currentBuild.result = res
-          } else {
+          } else { //test
             echo "All is well"
           }
         }
