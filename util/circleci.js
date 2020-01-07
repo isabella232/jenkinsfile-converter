@@ -22,6 +22,6 @@ executors:
       resource_class: windows.medium
       image: "windows-server-2019:201908-06"
       shell: bash
-  `
+  `;
 
-module.exports = { executors }
+module.exports = { executors };
