@@ -8,7 +8,7 @@ const { openFile } = require('./util/file.js');
 const { verifyValid } = require('./util/jenkins.js');
 
 // TODO: Groovy library to interact with Jenkinsfiles?
-// TODO: YAML Library to handle output?
+// TODO: YAML Library to handle/validate output?
 
 // TODO: Pair Jenkinsfiles syntax key with CCI syntax key
 
@@ -17,13 +17,14 @@ function main() {
   const path = process.argv[2];
 
   if (!verifyValid(openFile(path))) {
+    //TODO: return error and change exit
     console.error(
       'Invalid configuration. This tool only supports Jenkinsfiles using declarative pipelines.'
     );
     exit(1);
   }
 
-  //TODO: write to file
+  //TODO: write to file and return to caller
   console.log(config.join(''));
 }
 
