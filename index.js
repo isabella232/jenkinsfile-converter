@@ -5,7 +5,7 @@
 const cfg = require('./util/configGen.js');
 const cci = require('./util/circleci.js');
 const { openFile } = require('./util/file.js');
-const { verifyValid } = require('./util/jenkins.js');
+const { verifyValid, removeComments } = require('./util/jenkins.js');
 
 // TODO: Groovy library to interact with Jenkinsfiles?
 // TODO: YAML Library to handle/validate output?
@@ -15,8 +15,9 @@ const { verifyValid } = require('./util/jenkins.js');
 function main() {
   const config = [cfg.generateHeader(), 'version: 2.1', cci.executors()];
   const path = process.argv[2];
+  const jenkinsfile = openFile(path);
 
-  if (!verifyValid(openFile(path))) {
+  if (!verifyValid(jenkinsfile)) {
     //TODO: return error and change exit
     console.error(
       'Invalid configuration. This tool only supports Jenkinsfiles using declarative pipelines.'
@@ -24,8 +25,16 @@ function main() {
     exit(1);
   }
 
+
+
+  // if valid, parse jenkinsfile
+
+  // remove comments
+  console.log(removeComments(jenkinsfile));
+  // 
+
   //TODO: write to file and return to caller
-  console.log(config.join(''));
+  // console.log(config.join(''));
 }
 
 main();

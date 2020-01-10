@@ -42,6 +42,15 @@ const isBalanced = ([...str]) => {
 };
 
 // Removes any comments for easier parsing
-const removeComments = (s) => s.replace(/(\/\*[^*]*\*\/)|(\/\/[^*]*)/g, '');
+const removeComments = (s) => 
+  s.replace(/\/.*?\n|#!.*?\n/g, '');
 
-module.exports = { verifyValid };
+// Regex from Python convertor, need to replicate DOTALL with something like https://stackoverflow.com/questions/23455614/how-to-use-dotall-flag-for-regex-exec
+// string = re.sub(re.compile("/\*.*?\*/", re.DOTALL), "", string)
+
+
+// Identifies `stages` to convert into workflows
+// returns a single workflow key with jobs-array value
+
+
+module.exports = { verifyValid, removeComments };
