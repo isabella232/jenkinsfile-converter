@@ -48,9 +48,13 @@ const removeComments = (s) =>
 // Regex from Python convertor, need to replicate DOTALL with something like https://stackoverflow.com/questions/23455614/how-to-use-dotall-flag-for-regex-exec
 // string = re.sub(re.compile("/\*.*?\*/", re.DOTALL), "", string)
 
+const jenkinsfileToArray = (s) => {
+  return s.split('\n').filter(str => str.trim()).map(k => k.trim());
+}
 
 // Identifies `stages` to convert into workflows
+// const processStages = ()
 // returns a single workflow key with jobs-array value
 
 
-module.exports = { verifyValid, removeComments };
+module.exports = { verifyValid, removeComments, jenkinsfileToArray };

@@ -5,7 +5,7 @@
 const cfg = require('./util/configGen.js');
 const cci = require('./util/circleci.js');
 const { openFile } = require('./util/file.js');
-const { verifyValid, removeComments } = require('./util/jenkins.js');
+const { verifyValid, removeComments, jenkinsfileToArray } = require('./util/jenkins.js');
 
 // TODO: Groovy library to interact with Jenkinsfiles?
 // TODO: YAML Library to handle/validate output?
@@ -30,8 +30,7 @@ function main() {
   // if valid, parse jenkinsfile
 
   // remove comments
-  console.log(removeComments(jenkinsfile));
-  // 
+  console.log(jenkinsfileToArray(removeComments(jenkinsfile)));
 
   //TODO: write to file and return to caller
   // console.log(config.join(''));
