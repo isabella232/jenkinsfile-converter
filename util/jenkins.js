@@ -20,9 +20,10 @@ const verifyValid = (j) => {
 };
 
 // TODO: needs testing and sanity check
+// TODO: handle scripts
 const pullDirective = (l) => {
   if (l.trim().endsWith('{')) {
-    return l.substring(0, l.indexOf('{'));
+    return l.substring(0, l.indexOf('{')).trim();
   }
 };
 
@@ -41,7 +42,8 @@ const isBalanced = ([...str]) => {
   );
 };
 
-// Removes any comments for easier parsing
+// Removes single-line comments and shebangs for easier parsing
+// TODO: Handle block comments
 const removeComments = (s) => 
   s.replace(/\/.*?\n|#!.*?\n/g, '');
 
@@ -52,9 +54,58 @@ const jenkinsfileToArray = (s) => {
   return s.split('\n').filter(str => str.trim()).map(k => k.trim());
 }
 
+// expects arr with first idx that includes {, returns index of related ]
+
+const getBalancedIndex = (arr) => {
+  let bracketCount = 0
+  
+  for (let i = 0; i < arr.length; i++) {
+    let endChar = arr[i].substr(-1,1)
+    if (endChar === '{') {
+      bracketCount++;
+    } else if (endChar === '}') {
+      bracketCount--;
+    }
+    if (bracketCount == 0) {
+      return i;
+    }
+  }
+  // TODO: what's the best error to surface if the input is not balanced?
+  return false;
+}
+
+// returns sliced array consisting of stage or stages, otherwise returns 0
+const getSubstage = (arr) => {
+  for (let i = 0; i < arr.length; i++) {
+    if (checkDirective(arr[i], "stage") || checkDirective(arr[i], "stages")) {
+      let endIndex = getBalancedIndex(arr);
+      return arr.slice(i, endIndex)
+    }
+  }
+  return false;
+}
+
 // Identifies `stages` to convert into workflows
-// const processStages = ()
-// returns a single workflow key with jobs-array value
+const processStages = (arr) => {
+  
+  let substage = getSubstage(arr);
+  // iterate through arr and find `stages`
+  if (!substage) {
+    // handle steps
+    // collectSteps(substage)
+  } else {
+    // thinking this will be recursive and will return arr/obj containing jobs/workflows
+    processStages(arr)
+  }
+  
+  // returns a single workflow key with jobs-array value
+}
 
 
-module.exports = { verifyValid, removeComments, jenkinsfileToArray };
+// if `steps`, call step creating fn (TODO)
+const collectSteps = (arr) => {
+  return "placeholder"
+}
+
+
+module.exports = { verifyValid, removeComments, jenkinsfileToArray, processStages, getBalancedIndex, getSubstage };
