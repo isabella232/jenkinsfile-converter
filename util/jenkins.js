@@ -92,7 +92,7 @@ const getSteps = (arr) => {
 }
 
 // returns sliced array consisting of stage or stages, otherwise returns 0
-const processStanza = (arr) => {
+const processStanzas = (arr) => {
   let workflow = new Workflow
   for (let i = 0; i < arr.length; i++) {
     if (checkDirective(arr[i], "stages")) {
@@ -108,7 +108,7 @@ const processStanza = (arr) => {
 }
 
 const createExportFromJenkinsfile = (jenkinsfile) => {
-  return processStanza(jenkinsfileToArray(removeComments(jenkinsfile)));
+  return processStanzas(jenkinsfileToArray(removeComments(jenkinsfile)));
 }
 
 
