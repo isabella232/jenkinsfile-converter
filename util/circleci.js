@@ -25,5 +25,11 @@ executors:
   `;
 
 // TODO: fn to build workflows stanza
+const workflows = () =>`
+workflows:
+  version: 2
+  converted-from-Jenkinsfile:
+    jobs:
+`
 
 module.exports = { executors };
