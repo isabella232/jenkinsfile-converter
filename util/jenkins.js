@@ -1,3 +1,5 @@
+const { Workflow, Job } = require('../model/workflow.js');
+
 // Check that our parser will actually be able to interact with the Jenkinsfile
 //TODO: Using the Jenkins linter would be really nice here. This requires a standing Jenkins install unfortunately
 // For now we will just verify this is a declarative pipeline by looking for the `pipeline` block
@@ -45,7 +47,7 @@ const isBalanced = ([...str]) => {
 // Removes single-line comments and shebangs for easier parsing
 // TODO: Handle block comments
 const removeComments = (s) => 
-  s.replace(/\/.*?\n|#!.*?\n/g, '');
+  s.replace(/\/\/.*?\n|#!.*?\n/g, '');
 
 // Regex from Python convertor, need to replicate DOTALL with something like https://stackoverflow.com/questions/23455614/how-to-use-dotall-flag-for-regex-exec
 // string = re.sub(re.compile("/\*.*?\*/", re.DOTALL), "", string)
@@ -54,8 +56,7 @@ const jenkinsfileToArray = (s) => {
   return s.split('\n').filter(str => str.trim()).map(k => k.trim());
 }
 
-// expects arr with first idx that includes {, returns index of related ]
-
+// expects arr with first idx that includes {, returns index of related }
 const getBalancedIndex = (arr) => {
   let bracketCount = 0
   
@@ -74,38 +75,41 @@ const getBalancedIndex = (arr) => {
   return false;
 }
 
+const getStageName = (str) => {
+  // TODO: non-naive implementation
+  return str.substr(6, str.length - 2);
+}
+
+const getSteps = (arr) => {
+  console.log(arr);
+  let stepsArr = [];
+  let endIndex = getBalancedIndex(arr);
+  for (let i = 1; i < endIndex; i++) {
+    // TODO: Ensure this is a string
+    stepsArr.push(arr[i]);
+  }
+  return stepsArr
+}
+
 // returns sliced array consisting of stage or stages, otherwise returns 0
-const getSubstage = (arr) => {
+const processStanza = (arr) => {
+  let workflow = new Workflow
   for (let i = 0; i < arr.length; i++) {
-    if (checkDirective(arr[i], "stage") || checkDirective(arr[i], "stages")) {
-      let endIndex = getBalancedIndex(arr);
-      return arr.slice(i, endIndex)
+    if (checkDirective(arr[i], "stages")) {
+      // TODO: Sanity check how we want to handle "stages"
+    } else if (checkDirective(arr[i], "stage")) {
+      workflow.newJob(getStageName(arr[i]));
+    } else if (checkDirective(arr[i], "steps")) {
+      workflow.jobs[workflow.jobs.length - 1].steps = getSteps(arr.slice([i]));
     }
   }
-  return false;
+  // Returns Workflow object, we know we can ignore a step if the Workflow.[jobs].[steps] property has len == 0
+  return workflow;
 }
 
-// Identifies `stages` to convert into workflows
-const processStages = (arr) => {
-  
-  let substage = getSubstage(arr);
-  // iterate through arr and find `stages`
-  if (!substage) {
-    // handle steps
-    // collectSteps(substage)
-  } else {
-    // thinking this will be recursive and will return arr/obj containing jobs/workflows
-    processStages(arr)
-  }
-  
-  // returns a single workflow key with jobs-array value
+const createExportFromJenkinsfile = (jenkinsfile) => {
+  return processStanza(jenkinsfileToArray(removeComments(jenkinsfile)));
 }
 
 
-// if `steps`, call step creating fn (TODO)
-const collectSteps = (arr) => {
-  return "placeholder"
-}
-
-
-module.exports = { verifyValid, removeComments, jenkinsfileToArray, processStages, getBalancedIndex, getSubstage };
+module.exports = { verifyValid, createExportFromJenkinsfile };
