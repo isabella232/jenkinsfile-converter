@@ -10,4 +10,11 @@ const Job = function(name) {
   this.steps = [];
 }
 
-module.exports = { Workflow, Job }
+const Step = function(cmd, supported) {
+  // boolean, used to write comments
+  this.supported = supported;
+  // expect this to be a string
+  this.cmd = cmd
+}
+
+module.exports = { Workflow, Job, Step }

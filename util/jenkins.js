@@ -1,4 +1,4 @@
-const { Workflow, Job } = require('../model/workflow.js');
+const { Workflow, Job, Step } = require('../model/workflow.js');
 
 // Check that our parser will actually be able to interact with the Jenkinsfile
 //TODO: Using the Jenkins linter would be really nice here. This requires a standing Jenkins install unfortunately
@@ -27,6 +27,7 @@ const pullDirective = (l) => {
   if (l.trim().endsWith('{')) {
     return l.substring(0, l.indexOf('{')).trim();
   }
+  return false;
 };
 
 const checkDirective = (l, d) => l.trim().startsWith(d) && l.trim().endsWith('{');
@@ -59,39 +60,50 @@ const jenkinsfileToArray = (s) => {
 // expects arr with first idx that includes {, returns index of related }
 const getBalancedIndex = (arr) => {
   let bracketCount = 0
-  
-  for (let i = 0; i < arr.length; i++) {
-    let endChar = arr[i].substr(-1,1)
-    if (endChar === '{') {
-      bracketCount++;
-    } else if (endChar === '}') {
-      bracketCount--;
-    }
-    if (bracketCount == 0) {
+  // check first line has open curly brace
+  if (arr[0].substr(-1,1).trim() === '{') {
+    bracketCount++;
+  }
+  // otherwise exit fn
+  if (bracketCount === 0) {
+    return false;
+  }
+
+  for (let i = 1; i < arr.length; i++) {
+    bracketCount += (Math.max(arr[i].split('{').length - 1, 0));
+    bracketCount -= (Math.max(arr[i].split('}').length - 1, 0));
+    if (bracketCount === 0) {
       return i;
     }
   }
-  // TODO: what's the best error to surface if the input is not balanced?
-  return false;
 }
 
 const getStageName = (str) => {
-  // TODO: non-naive implementation
-  return str.substr(6, str.length - 2);
+  let begin = str.indexOf('(') + 2;
+  let len = str.lastIndexOf(')') - str.indexOf('(') - 3;
+  return str.substr(begin, len);
 }
 
 const getSteps = (arr) => {
-  console.log(arr);
   let stepsArr = [];
   let endIndex = getBalancedIndex(arr);
   for (let i = 1; i < endIndex; i++) {
-    // TODO: Ensure this is a string
-    stepsArr.push(arr[i]);
+    if (!pullDirective(arr[i])) {
+      stepsArr.push(new Step(arr[i], true))
+    } else if (pullDirective(arr[i]).startsWith('script')) {
+      // TODO: Refactor/make less verbose
+      let endScriptIndex = getBalancedIndex(arr.slice(i));
+      let script = arr.slice(i, endScriptIndex + i + 1);
+      let cmd = script.join('\\\n');
+      let step = new Step(cmd, false);
+      stepsArr.push(step);
+      i += endScriptIndex;
+    }
   }
   return stepsArr
 }
 
-// returns sliced array consisting of stage or stages, otherwise returns 0
+// returns Workflow obj with Jobs
 const processStanzas = (arr) => {
   let workflow = new Workflow
   for (let i = 0; i < arr.length; i++) {
@@ -103,7 +115,12 @@ const processStanzas = (arr) => {
       workflow.jobs[workflow.jobs.length - 1].steps = getSteps(arr.slice([i]));
     }
   }
-  // Returns Workflow object, we know we can ignore a step if the Workflow.[jobs].[steps] property has len == 0
+  
+  // For debugging inside workflows object
+  for (var i = 0; i < workflow.jobs.length; i++) {
+    console.log(workflow.jobs[i]);
+  }
+
   return workflow;
 }
 

@@ -26,8 +26,8 @@ function main() {
   }
 
   // Converts Jenkinsfile into Workflow object
-  console.log(createExportFromJenkinsfile(jenkinsfile));
-
+  // console.log(createExportFromJenkinsfile(jenkinsfile));
+  createExportFromJenkinsfile(jenkinsfile);
   // TODO: Convert Workflow object into CircleCI Config
 
   //TODO: write to file and return to caller
