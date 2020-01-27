@@ -2,6 +2,8 @@
 
 // The intention of this script in its current state is not to be the interface that a user will interact with, but just a POC of the conversion from Jenkinsfiles to CCI config.
 
+const fs = require('fs');
+
 const cfg = require('./util/configGen.js');
 const cci = require('./util/circleci.js');
 const { openFile } = require('./util/file.js');
@@ -22,17 +24,15 @@ function main() {
     console.error(
       'Invalid configuration. This tool only supports Jenkinsfiles using declarative pipelines.'
     );
-    exit(1);
   }
 
-  // Converts Jenkinsfile into Workflow object
-  // parseJenkinsfile(jenkinsfile);
-  cci.createConfig(parseJenkinsfile(jenkinsfile));
-  // TODO: Convert Workflow object into CircleCI Config
+  const circleYAML = () => cci.createConfig(parseJenkinsfile(jenkinsfile));
   
+  fs.writeFile('config.yml', circleYAML(), function(err) {
+    if (err) throw err;
+    console.log('file saved!')
+  });
 
-  //TODO: write to file and return to caller
-  // console.log(config.join(''));
 }
 
 main();
