@@ -4,7 +4,6 @@ const { comment, padding, multilineComment } = require('./configGen.js');
 
 // Is config in strings really the best way to do this? I investigated yaml libraries, but didn't see anything I fell in love with.
 const executors = () => `
-
 version: 2.1
 
 # You can replace your executor in any job with an executor defined here. A good start would be replacing the image in your Docker executor with one of our convience images.
@@ -35,6 +34,10 @@ workflows:
     jobs:
 `
 
+const jobsPreamble = () => `
+jobs:
+`
+
 const writeJobToWorkflow = (job) => {
   // only run steps for the most naive implementation
   return padding(6) + '- ' + job.name;
@@ -44,6 +47,22 @@ const writeRequires = (job) => {
   return `:
           requires:
               - ` + job.name;
+}
+
+const writeWithPadding = (str, spaces) => {
+  return padding(spaces) + str;
+}
+
+const writeJobSteps = (job) => {
+  let output = ''
+  for (let i = 0; i < job.steps.length; i++) {
+    if (!job.steps[i].supported) {
+      // TODO: Write out as comment
+    } else {
+      output += writeWithPadding('- ' + job.steps[i].cmd, 6) + '\n';
+    }
+  }
+  return output
 }
 
 const writeWorkflows = (workflow) => {
@@ -61,11 +80,23 @@ const writeWorkflows = (workflow) => {
   return output;
 }
 
+const writeJobs = (workflow) => {
+  let output = jobsPreamble();
+  for (let i = 0; i < workflow.jobs.length; i++) {
+    output += writeWithPadding(workflow.jobs[i].name + ':\n', 2);
+    output += writeWithPadding('executor: docker\n', 4);
+    output += writeWithPadding('steps:\n', 4);
+    output += writeJobSteps(workflow.jobs[i]);
+  }
+  return output;
+}
+
+
 const createConfig = (input) => {
   let config = ''
   config += executors();
   config += writeWorkflows(input);
-  console.log(config);
+  config += writeJobs(input);
   return config;
 }
 

@@ -9,6 +9,8 @@ const cci = require('./util/circleci.js');
 const { openFile } = require('./util/file.js');
 const { verifyValid, parseJenkinsfile } = require('./util/jenkins.js');
 
+let outputPath = 'config.yml'
+
 // TODO: Groovy library to interact with Jenkinsfiles?
 // TODO: YAML Library to handle/validate output?
 
@@ -28,7 +30,7 @@ function main() {
 
   const circleYAML = () => cci.createConfig(parseJenkinsfile(jenkinsfile));
   
-  fs.writeFile('config.yml', circleYAML(), function(err) {
+  fs.writeFile(outputPath, circleYAML(), function(err) {
     if (err) throw err;
     console.log('file saved!')
   });

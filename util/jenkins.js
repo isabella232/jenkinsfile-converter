@@ -126,9 +126,9 @@ const processStanzas = (arr) => {
   }
 
   // For debugging inside workflows object
-  for (var i = 0; i < workflow.jobs.length; i++) {
-    console.log(workflow.jobs[i])
-  }
+  // for (var i = 0; i < workflow.jobs.length; i++) {
+  //   console.log(workflow.jobs[i])
+  // }
 
   return workflow;
 }

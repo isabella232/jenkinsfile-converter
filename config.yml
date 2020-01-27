@@ -1,5 +1,4 @@
 
-
 version: 2.1
 
 # You can replace your executor in any job with an executor defined here. A good start would be replacing the image in your Docker executor with one of our convience images.
@@ -30,3 +29,13 @@ workflows:
       - deploy:
           requires:
               - build
+
+jobs:
+  build:
+    executor: docker
+    steps:
+      - sh "./run-build.sh"
+  deploy:
+    executor: docker
+    steps:
+      - sh "./run-deploy.sh"
