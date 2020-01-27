@@ -5,7 +5,7 @@
 const cfg = require('./util/configGen.js');
 const cci = require('./util/circleci.js');
 const { openFile } = require('./util/file.js');
-const { verifyValid, createExportFromJenkinsfile } = require('./util/jenkins.js');
+const { verifyValid, parseJenkinsfile } = require('./util/jenkins.js');
 
 // TODO: Groovy library to interact with Jenkinsfiles?
 // TODO: YAML Library to handle/validate output?
@@ -26,9 +26,10 @@ function main() {
   }
 
   // Converts Jenkinsfile into Workflow object
-  // console.log(createExportFromJenkinsfile(jenkinsfile));
-  createExportFromJenkinsfile(jenkinsfile);
+  // parseJenkinsfile(jenkinsfile);
+  cci.createConfig(parseJenkinsfile(jenkinsfile));
   // TODO: Convert Workflow object into CircleCI Config
+  
 
   //TODO: write to file and return to caller
   // console.log(config.join(''));

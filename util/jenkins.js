@@ -111,22 +111,31 @@ const processStanzas = (arr) => {
       // TODO: Sanity check how we want to handle "stages"
     } else if (checkDirective(arr[i], "stage")) {
       workflow.newJob(getStageName(arr[i]));
+    } else if (checkDirective(arr[i], "agent")) {
+      // TODO: Add logic to assign correct Docker executor based on JF
     } else if (checkDirective(arr[i], "steps")) {
       workflow.jobs[workflow.jobs.length - 1].steps = getSteps(arr.slice([i]));
     }
   }
   
+  // Remove empty jobs
+  for (var i = workflow.jobs.length - 1; i >= 0; i--) {
+    if (workflow.jobs[i].steps.length == 0) {
+      workflow.jobs.splice(i, 1);
+    }
+  }
+
   // For debugging inside workflows object
   for (var i = 0; i < workflow.jobs.length; i++) {
-    console.log(workflow.jobs[i]);
+    console.log(workflow.jobs[i])
   }
 
   return workflow;
 }
 
-const createExportFromJenkinsfile = (jenkinsfile) => {
+const parseJenkinsfile = (jenkinsfile) => {
   return processStanzas(jenkinsfileToArray(removeComments(jenkinsfile)));
 }
 
 
-module.exports = { verifyValid, createExportFromJenkinsfile };
+module.exports = { verifyValid, parseJenkinsfile };
