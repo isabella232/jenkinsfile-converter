@@ -115,6 +115,8 @@ const processStanzas = (arr) => {
       workflow.jobs[workflow.jobs.length - 1].steps = getSteps(arr.slice([i]));
     } else if (checkDirective(arr[i], 'post')) {
       workflow.newComment('post', getSection(arr.slice([i])));;
+    } else if (checkDirective(arr[i], 'options')) {
+      workflow.newComment('options', getSection(arr.slice([i])));;
     }
   }
   

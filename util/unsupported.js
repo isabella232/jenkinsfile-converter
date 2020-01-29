@@ -1,15 +1,23 @@
+const { tagLib } = require ('../static/unsupported.js');
 const { comment, padding, multilineComment } = require('./configGen.js');
+
 
 const handleComments = (commentArr) => {
   let output = '\n\n';
   for (let i = 0; i < commentArr.length; i++) {
-    if (commentArr[i].keyword == 'post') {
-      let lines = commentArr[i].content;
-      output += comment(commentArr[i].keyword + ' is not directly transferrable from Jenkinsfile to config.yml.');
-      output += comment('Please refer to https://circleci.com/docs/2.0/configuration-reference/#the-when-attribute for more information.')
-      output += multilineComment.apply(null, lines) + '\n';
-    }
+    let kw = commentArr[i].keyword;
+    let linesArr = commentArr[i].content;
+    output += processComment(kw, linesArr);
   }
+  return output;
+}
+
+const processComment = (kw, linesArr) => {
+  let output = ''
+  output += comment(kw + tagLib[kw].reason);
+  output += comment('Please refer to ' + tagLib[kw].link + ' for more information.');
+  output += multilineComment.apply(null, linesArr) + '\n';
+  console.log(output);
   return output;
 }
 
