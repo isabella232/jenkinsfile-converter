@@ -35,6 +35,13 @@ jobs:
       - run: sh "test -f Jenkinsfile"
 
 
+# triggers are supported in CircleCI, however we strongly recommend you achieve your
+#  first green build before implementing this feature.
+# Please refer to https://circleci.com/docs/2.0/workflows/#scheduling-a-workflow for more information.
+#  triggers {
+#  cron('@daily')
+#  }
+
 # options do not have a direct correlation to CircleCI syntax
 # Please refer to https://circleci.com/docs/2.0/configuration-reference/#workflows for more information.
 #  options {

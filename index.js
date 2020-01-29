@@ -5,9 +5,9 @@
 const fs = require('fs');
 
 const cfg = require('./util/configGen.js');
-const cci = require('./util/circleci.js');
-const { openFile } = require('./util/file.js');
-const { verifyValid, parseJenkinsfile } = require('./util/jenkins.js');
+const { createConfig } = require('./util/circleci.js');
+const { openFile, verifyValid } = require('./util/file.js');
+const { parseJenkinsfile } = require('./util/jenkins.js');
 
 let outputPath = 'config.yml'
 
@@ -28,7 +28,7 @@ function main() {
     );
   }
 
-  const circleYAML = () => cci.createConfig(parseJenkinsfile(jenkinsfile));
+  const circleYAML = () => createConfig(parseJenkinsfile(jenkinsfile));
   
   fs.writeFile(outputPath, circleYAML(), function(err) {
     if (err) throw err;

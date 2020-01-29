@@ -30,12 +30,12 @@ executors:
       shell: bash
   `;
 
-const createConfig = (workflow) => {
+const createConfig = (workflowObj) => {
   let config = ''
   config += executors();
-  config += writeWorkflows(workflow);
-  config += writeJobs(workflow);
-  config += writeComments(workflow);
+  config += writeWorkflows(workflowObj);
+  config += writeJobs(workflowObj);
+  config += writeComments(workflowObj);
   return config;
 }
 

@@ -1,82 +1,8 @@
 const { Workflow, Job, Step } = require('../model/workflow.js');
+const { pullDirective, checkDirective, 
+  removeComments, jenkinsfileToArray, 
+  getBalancedIndex, getSection } = require('./jfParse.js');
 
-// Check that our parser will actually be able to interact with the Jenkinsfile
-// TODO: Using the Jenkins linter would be really nice here. This requires a standing Jenkins install unfortunately
-// For now we will just verify this is a declarative pipeline by looking for the `pipeline` block
-const verifyValid = (j) => {
-  for (let l of j.split('\n')) {
-    // running removeComments on j causes everything after the first comment to be removed so this is my workaround
-    // TODO: fix removeComments to work on the entire config
-    l = removeComments(l);
-    if (l.trim()) {
-      // TODO: fix this logic, very naive implementation
-
-      if (checkDirective(l, 'pipeline')) {
-        return isBalanced(j);
-      }
-    }
-  }
-  console.log('Invalid Jenkinsfile');
-  return false;
-};
-
-const pullDirective = (l) => {
-  if (l.trim().endsWith('{')) {
-    return l.substring(0, l.indexOf('{')).trim();
-  }
-  return false;
-};
-
-const checkDirective = (l, d) => l.trim().startsWith(d) && l.trim().endsWith('{');
-
-// isBalanced verifies that brackets are balanaced throughout the config
-const isBalanced = ([...str]) => {
-  return (
-    str.reduce((uptoPrevChar, thisChar) => {
-      ((thisChar === '(' && uptoPrevChar++) || (thisChar === ')' && uptoPrevChar--)) &&
-        ((thisChar === '{' && uptoPrevChar++) || (thisChar === '}' && uptoPrevChar--)) &&
-        ((thisChar === '[' && uptoPrevChar++) || (thisChar === ']' && uptoPrevChar--));
-
-      return uptoPrevChar;
-    }, 0) === 0
-  );
-};
-
-// TODO: Handle block comments
-// Regex from Python convertor, need to replicate DOTALL with something like https://stackoverflow.com/questions/23455614/how-to-use-dotall-flag-for-regex-exec
-// string = re.sub(re.compile("/\*.*?\*/", re.DOTALL), "", string)
-const removeComments = (s) => 
-  s.replace(/\/\/.*?\n|#!.*?\n/g, '');
-
-const jenkinsfileToArray = (s) => {
-  return s.split('\n').filter(str => str.trim()).map(k => k.trim());
-}
-
-// helper fn; expects arr with idx 0 that includes {, returns index of related }
-const getBalancedIndex = (arr) => {
-  let bracketCount = 0
-  // check first line has open curly brace
-  if (arr[0].substr(-1,1).trim() === '{') {
-    bracketCount++;
-  }
-  // otherwise exit fn
-  if (bracketCount === 0) {
-    return false;
-  }
-
-  for (let i = 1; i < arr.length; i++) {
-    bracketCount += (Math.max(arr[i].split('{').length - 1, 0));
-    bracketCount -= (Math.max(arr[i].split('}').length - 1, 0));
-    if (bracketCount === 0) {
-      return i;
-    }
-  }
-}
-
-// getSection returns a JF stanza that has balanced brackets as an array
-const getSection = (arr) => {
-  return arr.slice(0, getBalancedIndex(arr) + 1);
-}
 
 const getStageName = (str) => {
   let begin = str.indexOf('(') + 2;
@@ -117,6 +43,8 @@ const processStanzas = (arr) => {
       workflow.newComment('post', getSection(arr.slice([i])));;
     } else if (checkDirective(arr[i], 'options')) {
       workflow.newComment('options', getSection(arr.slice([i])));;
+    } else if (checkDirective(arr[i], 'triggers')) {
+      workflow.newComment('triggers', getSection(arr.slice([i])));;
     }
   }
   
@@ -140,4 +68,4 @@ const parseJenkinsfile = (jenkinsfile) => {
 }
 
 
-module.exports = { verifyValid, parseJenkinsfile };
+module.exports = { parseJenkinsfile };
