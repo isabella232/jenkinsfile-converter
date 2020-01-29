@@ -1,4 +1,4 @@
-const tagLib = {
+const commentsLib = {
   "post": {
     "reason": " is not directly transferrable from Jenkinsfile to config.yml",
     "link": "https://circleci.com/docs/2.0/configuration-reference/#the-when-attribute"
@@ -9,4 +9,4 @@ const tagLib = {
   }
 }
 
-module.exports = { tagLib };
+module.exports = { commentsLib };

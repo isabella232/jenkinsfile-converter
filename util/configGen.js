@@ -2,7 +2,7 @@
 const comment = (text) => `# ${text}\n`;
 
 // Generate indentention where X is the amount of spaces
-const padding = (x) => ' '.repeat(x);
+const padding = (str, spaces) => ' '.repeat(spaces) + str;
 
 // Given a number of strings, return a YAML multiline comment string
 const multilineComment = (...text) => {

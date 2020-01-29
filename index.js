@@ -17,7 +17,7 @@ let outputPath = 'config.yml'
 // TODO: Pair Jenkinsfiles syntax key with CCI syntax key
 
 function main() {
-  const config = [cfg.generateHeader(), 'version: 2.1', cci.executors()];
+  const config = [cfg.generateHeader(), 'version: 2.1'];
   const path = process.argv[2];
   const jenkinsfile = openFile(path);
 

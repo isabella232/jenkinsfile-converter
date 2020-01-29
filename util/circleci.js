@@ -1,5 +1,7 @@
 const { comment, padding, multilineComment } = require('./configGen.js');
-const { handleComments } = require('./unsupported.js');
+const { writeJobs } = require('./configJobs.js');
+const { writeComments } = require('./configComments.js');
+const { writeWorkflows } = require('./configWorkflows.js');
 
 // TODO: How to handle agents? I would recommend creating a wizard like experience to create executors which can then be assigned
 
@@ -28,75 +30,6 @@ executors:
       shell: bash
   `;
 
-const workflowsPreamble = () =>`
-workflows:
-  version: 2
-  build-test-deploy:
-    jobs:
-`
-
-const jobsPreamble = () => `
-jobs:
-`
-
-const writeJobToWorkflow = (job) => {
-  // only run steps for the most naive implementation
-  return padding(6) + '- ' + job.name;
-}
-
-const writeRequires = (job) => {
-  return `:
-          requires:
-              - ` + job.name;
-}
-
-const writeWithPadding = (str, spaces) => {
-  return padding(spaces) + str;
-}
-
-const writeJobSteps = (job) => {
-  let output = ''
-  for (let i = 0; i < job.steps.length; i++) {
-    if (!job.steps[i].supported) {
-      // TODO: Write out as comment
-    } else {
-      output += writeWithPadding('- run: ' + job.steps[i].cmd, 6) + '\n';
-    }
-  }
-  return output
-}
-
-const writeWorkflows = (workflow) => {
-  let output = workflowsPreamble();
-  let firstLine = true;
-  for (let i = 0; i < workflow.jobs.length; i++) {
-    output += writeJobToWorkflow(workflow.jobs[i]);
-    if (firstLine) {
-      firstLine = !firstLine
-      output += '\n'
-    } else {
-      output += writeRequires(workflow.jobs[i-1]) + '\n';
-    } 
-  }
-  return output;
-}
-
-const writeJobs = (workflow) => {
-  let output = jobsPreamble();
-  for (let i = 0; i < workflow.jobs.length; i++) {
-    output += writeWithPadding(workflow.jobs[i].name + ':\n', 2);
-    // TODO: Non-static executor entries
-    output += writeWithPadding('executor: default\n', 4);
-    output += writeWithPadding('steps:\n', 4);
-    output += writeJobSteps(workflow.jobs[i]);
-  }
-  return output;
-}
-
-const writeComments = (workflow) => {
-  return handleComments(workflow.comments);
-}
-
 const createConfig = (workflow) => {
   let config = ''
   config += executors();
@@ -106,7 +39,7 @@ const createConfig = (workflow) => {
   return config;
 }
 
-module.exports = { executors, createConfig };
+module.exports = { createConfig };
 
 
 
