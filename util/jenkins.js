@@ -1,7 +1,7 @@
 const { Workflow, Job, Step } = require('../model/workflow.js');
 
 // Check that our parser will actually be able to interact with the Jenkinsfile
-//TODO: Using the Jenkins linter would be really nice here. This requires a standing Jenkins install unfortunately
+// TODO: Using the Jenkins linter would be really nice here. This requires a standing Jenkins install unfortunately
 // For now we will just verify this is a declarative pipeline by looking for the `pipeline` block
 const verifyValid = (j) => {
   for (let l of j.split('\n')) {
@@ -16,13 +16,10 @@ const verifyValid = (j) => {
       }
     }
   }
-
-  // TODO: probably helpful to return why this step failed
+  console.log('Invalid Jenkinsfile');
   return false;
 };
 
-// TODO: needs testing and sanity check
-// TODO: handle scripts
 const pullDirective = (l) => {
   if (l.trim().endsWith('{')) {
     return l.substring(0, l.indexOf('{')).trim();
@@ -45,19 +42,17 @@ const isBalanced = ([...str]) => {
   );
 };
 
-// Removes single-line comments and shebangs for easier parsing
 // TODO: Handle block comments
-const removeComments = (s) => 
-  s.replace(/\/\/.*?\n|#!.*?\n/g, '');
-
 // Regex from Python convertor, need to replicate DOTALL with something like https://stackoverflow.com/questions/23455614/how-to-use-dotall-flag-for-regex-exec
 // string = re.sub(re.compile("/\*.*?\*/", re.DOTALL), "", string)
+const removeComments = (s) => 
+  s.replace(/\/\/.*?\n|#!.*?\n/g, '');
 
 const jenkinsfileToArray = (s) => {
   return s.split('\n').filter(str => str.trim()).map(k => k.trim());
 }
 
-// expects arr with first idx that includes {, returns index of related }
+// helper fn; expects arr with idx 0 that includes {, returns index of related }
 const getBalancedIndex = (arr) => {
   let bracketCount = 0
   // check first line has open curly brace
@@ -78,6 +73,11 @@ const getBalancedIndex = (arr) => {
   }
 }
 
+// getSection returns a JF stanza that has balanced brackets as an array
+const getSection = (arr) => {
+  return arr.slice(0, getBalancedIndex(arr) + 1);
+}
+
 const getStageName = (str) => {
   let begin = str.indexOf('(') + 2;
   let len = str.lastIndexOf(')') - str.indexOf('(') - 3;
@@ -91,10 +91,8 @@ const getSteps = (arr) => {
     if (!pullDirective(arr[i])) {
       stepsArr.push(new Step(arr[i], true))
     } else if (pullDirective(arr[i]).startsWith('script')) {
-      // TODO: Refactor/make less verbose
       let endScriptIndex = getBalancedIndex(arr.slice(i));
-      let script = arr.slice(i, endScriptIndex + i + 1);
-      let cmd = script.join('\\\n');
+      let cmd = getSection(arr.slice(i)).join('\\\n');
       let step = new Step(cmd, false);
       stepsArr.push(step);
       i += endScriptIndex;
@@ -107,14 +105,16 @@ const getSteps = (arr) => {
 const processStanzas = (arr) => {
   let workflow = new Workflow
   for (let i = 0; i < arr.length; i++) {
-    if (checkDirective(arr[i], "stages")) {
-      // TODO: Sanity check how we want to handle "stages"
-    } else if (checkDirective(arr[i], "stage")) {
+    if (checkDirective(arr[i], 'stages')) {
+      // TODO: Sanity check how we want to handle 'stages'
+    } else if (checkDirective(arr[i], 'stage')) {
       workflow.newJob(getStageName(arr[i]));
-    } else if (checkDirective(arr[i], "agent")) {
+    } else if (checkDirective(arr[i], 'agent')) {
       // TODO: Add logic to assign correct Docker executor based on JF
-    } else if (checkDirective(arr[i], "steps")) {
+    } else if (checkDirective(arr[i], 'steps')) {
       workflow.jobs[workflow.jobs.length - 1].steps = getSteps(arr.slice([i]));
+    } else if (checkDirective(arr[i], 'post')) {
+      workflow.newComment('post', getSection(arr.slice([i])));;
     }
   }
   

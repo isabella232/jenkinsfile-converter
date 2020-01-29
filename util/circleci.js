@@ -1,4 +1,5 @@
 const { comment, padding, multilineComment } = require('./configGen.js');
+const { handleComments } = require('./unsupported.js');
 
 // TODO: How to handle agents? I would recommend creating a wizard like experience to create executors which can then be assigned
 
@@ -13,7 +14,7 @@ executors:
   default:
     docker:
   # List of convenience images: https://circleci.com/docs/2.0/circleci-images/#latest-image-tags-by-language
-      - image: circleci/python
+      - image: circleci/python:3.6
     working_directory: ~/proj
   macos:
     macos:
@@ -59,7 +60,7 @@ const writeJobSteps = (job) => {
     if (!job.steps[i].supported) {
       // TODO: Write out as comment
     } else {
-      output += writeWithPadding('- ' + job.steps[i].cmd, 6) + '\n';
+      output += writeWithPadding('- run: ' + job.steps[i].cmd, 6) + '\n';
     }
   }
   return output
@@ -84,19 +85,24 @@ const writeJobs = (workflow) => {
   let output = jobsPreamble();
   for (let i = 0; i < workflow.jobs.length; i++) {
     output += writeWithPadding(workflow.jobs[i].name + ':\n', 2);
-    output += writeWithPadding('executor: docker\n', 4);
+    // TODO: Non-static executor entries
+    output += writeWithPadding('executor: default\n', 4);
     output += writeWithPadding('steps:\n', 4);
     output += writeJobSteps(workflow.jobs[i]);
   }
   return output;
 }
 
+const writeComments = (workflow) => {
+  return handleComments(workflow.comments);
+}
 
-const createConfig = (input) => {
+const createConfig = (workflow) => {
   let config = ''
   config += executors();
-  config += writeWorkflows(input);
-  config += writeJobs(input);
+  config += writeWorkflows(workflow);
+  config += writeJobs(workflow);
+  config += writeComments(workflow);
   return config;
 }
 

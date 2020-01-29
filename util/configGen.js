@@ -1,5 +1,5 @@
 // Generate a YAML comment from given text.
-const comment = (text) => `#${text}\n`;
+const comment = (text) => `# ${text}\n`;
 
 // Generate indentention where X is the amount of spaces
 const padding = (x) => ' '.repeat(x);
