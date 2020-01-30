@@ -4,7 +4,7 @@ jobs:
   build:
     docker:
       - image: circleci/node:12.8.0
-    working_directory: ~/project
+    working_directory: ~/
     steps:
       - checkout
       - run:
@@ -23,7 +23,7 @@ jobs:
   test:
     docker:
       - image: circleci/circleci-cli:0.1.5879-alpine
-    working_directory: ~/project
+    working_directory: ~/
     steps:
       - attach_workspace:
           at: ~/
