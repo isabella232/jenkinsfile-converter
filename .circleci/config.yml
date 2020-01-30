@@ -12,7 +12,7 @@ jobs:
           command: mkdir -p ~/artifacts          
       - run:
           name: create config.yml
-          command: ./project/test/createConfigs.sh
+          command: ~/project/test/createConfigs.sh
       - store_artifacts:
           path: ~/project/artifacts
       - persist_to_workspace:
