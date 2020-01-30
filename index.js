@@ -31,7 +31,7 @@ function main() {
 
   const circleYAML = () => createConfig(parseJenkinsfile(jenkinsfile));
   
-  fs.writeFile(outputPath, circleYAML(), function(err) {
+  fs.writeFile(__dirname + outputPath, circleYAML(), function(err) {
     if (err) throw err;
     console.log('file saved!')
   });
