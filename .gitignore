@@ -109,5 +109,4 @@ dist
 .vscode-test
 
 # Ignore testing output
-config.yml
-
+artifacts/

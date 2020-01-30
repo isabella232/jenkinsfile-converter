@@ -9,7 +9,7 @@ const { createConfig } = require('./util/circleci.js');
 const { openFile, verifyValid } = require('./util/file.js');
 const { parseJenkinsfile } = require('./util/jenkins.js');
 
-let outputPath = 'config.yml'
+
 
 // TODO: Groovy library to interact with Jenkinsfiles?
 // TODO: YAML Library to handle/validate output?
@@ -19,6 +19,7 @@ let outputPath = 'config.yml'
 function main() {
   const config = [cfg.generateHeader(), 'version: 2.1'];
   const path = process.argv[2];
+  const outputPath = process.argv[3] || 'config.yml';
   const jenkinsfile = openFile(path);
 
   if (!verifyValid(jenkinsfile)) {
