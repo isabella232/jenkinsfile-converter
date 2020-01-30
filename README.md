@@ -6,7 +6,7 @@ While this tool should output a valid `config.yml`, this tool is not yet feature
 For more about CircleCI, see https://circleci.com
 
 ## Overview
-`node index.js path/to/Jenkinsfile` will create a `config.yml` file in the root directory. 
+`node index.js [path/to/Jenkinsfile] [path/to/output]` will convert a Jenkinsfile to the desired location. `path/to/output` is an optional argument and will create `config.yml` in the base directory if not specified.
 
 ## Supported Syntax
 Only declarative `Jenkinsfile`s are currently supported.
