@@ -3,6 +3,7 @@
 // The intention of this script in its current state is not to be the interface that a user will interact with, but just a POC of the conversion from Jenkinsfiles to CCI config.
 
 const fs = require('fs');
+const path = require('path');
 
 const cfg = require('./util/configGen.js');
 const { createConfig } = require('./util/circleci.js');
@@ -18,9 +19,9 @@ const { parseJenkinsfile } = require('./util/jenkins.js');
 
 function main() {
   const config = [cfg.generateHeader(), 'version: 2.1'];
-  const path = process.argv[2];
+  const inputPath = process.argv[2];
   const outputPath = process.argv[3] || 'config.yml';
-  const jenkinsfile = openFile(path);
+  const jenkinsfile = openFile(inputPath);
 
   if (!verifyValid(jenkinsfile)) {
     //TODO: return error and change exit
@@ -31,7 +32,7 @@ function main() {
 
   const circleYAML = () => createConfig(parseJenkinsfile(jenkinsfile));
   
-  fs.writeFile(__dirname + outputPath, circleYAML(), function(err) {
+  fs.writeFile(path.join(__dirname, outputPath), circleYAML(), function(err) {
     if (err) throw err;
     console.log('file saved!')
   });

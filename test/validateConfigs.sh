@@ -2,8 +2,10 @@
 
 set -eu
 
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+
 validate_configs() {
-  configs=($(find ~/artifacts -name "*.yml"))
+  configs=($(find ${parent_path}/../artifacts -name "*.yml"))
   failed=0
   passed=0
   if [[ $configs ]]; then
