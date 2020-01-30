@@ -9,7 +9,7 @@ jobs:
       - checkout
       - run:
           name: create artifacts dir
-          command: mkdir -p ~/artifacts          
+          command: mkdir -p ~/project/artifacts          
       - run:
           name: create config.yml
           command: ~/project/test/createConfigs.sh
