@@ -16,6 +16,7 @@ validate_configs() {
         ((failed++)) 
         echo "Failed to validate ${configs[i]}"
       else
+        continue
         ((passed++))
       fi
     done
