@@ -23,9 +23,12 @@ jobs:
 
   test:
     docker:
-      - image: circleci/circleci-cli:0.1.5879-alpine
+      - image: circleci/node:12.8.0
     working_directory: ~/project
     steps:
+      - run:
+          name: install CircleCI CLI
+          command: curl -fLSs https://circle.ci/cli | bash
       - attach_workspace:
           at: ~/project
       - run:
