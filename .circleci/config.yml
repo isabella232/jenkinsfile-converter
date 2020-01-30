@@ -29,7 +29,7 @@ jobs:
           at: ~/project
       - run:
           name: validate configs
-          command: ./project/test/validateConfigs.sh
+          command: ~/project/test/validateConfigs.sh
 
 workflows:
   version: 2
