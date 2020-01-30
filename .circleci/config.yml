@@ -14,9 +14,9 @@ jobs:
           name: create config.yml
           command: ./project/test/createConfigs.sh
       - store_artifacts:
-          path: ~/artifacts
+          path: ~/project/artifacts
       - persist_to_workspace:
-          root: ~/
+          root: ~/project
           paths:
             - artifacts/
 
@@ -26,7 +26,7 @@ jobs:
     working_directory: ~/project
     steps:
       - attach_workspace:
-          at: ~/
+          at: ~/project
       - run:
           name: validate configs
           command: ./project/test/validateConfigs.sh

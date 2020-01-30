@@ -11,7 +11,7 @@ create_configs() {
     for i in "${!jf_tests[@]}"; do
       echo "${jf_tests[i]}"
       echo "${config_names[i]}"
-      node ${parent_path}/../index.js "${jf_tests[i]}" ./artifacts/"${config_names[i]}"
+      node "${parent_path}"/../index.js "${jf_tests[i]}" ./artifacts/"${config_names[i]}"
     done
   else
     echo "No tests!"
