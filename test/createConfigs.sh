@@ -8,7 +8,7 @@ create_configs() {
   if [[ $jf_tests ]]; then
     for i in "${!jf_tests[@]}"; do
       echo "${jf_tests[i]}"
-      node index.js "${jf_tests[i]}" "./artifacts/${config_names[i]}"
+      node index.js "${jf_tests[i]}" "~/artifacts/${config_names[i]}"
     done
   else
     echo "No tests!"
