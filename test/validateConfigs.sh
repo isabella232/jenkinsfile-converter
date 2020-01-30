@@ -1,6 +1,6 @@
 #! /bin/bash
 
-set -eu
+set -u
 
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
@@ -12,11 +12,9 @@ validate_configs() {
     for i in "${!configs[@]}"; do
       if ! circleci config validate "${configs[i]}"
       then
-        continue
         ((failed++)) 
         echo "Failed to validate ${configs[i]}"
       else
-        continue
         ((passed++))
       fi
     done
@@ -25,7 +23,7 @@ validate_configs() {
     exit 1
   fi
   
-  echo "$passed tests passed out of $(( failed+passed ))"
+  echo "${passed} tests passed out of $(( failed+passed ))"
   
   if [ "$failed" > 0 ]
   then
