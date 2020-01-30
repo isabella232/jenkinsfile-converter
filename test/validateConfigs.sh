@@ -12,9 +12,9 @@ validate_configs() {
     for i in "${!configs[@]}"; do
       if ! circleci config validate "${configs[i]}"
       then
+        continue
         ((failed++)) 
         echo "Failed to validate ${configs[i]}"
-        continue
       else
         ((passed++))
       fi
