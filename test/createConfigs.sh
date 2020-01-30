@@ -9,8 +9,7 @@ create_configs() {
   config_names=($(find ${parent_path}/configs/declarative-examples -name "*.groovy" | sed 's/.*\///' | sed 's/.groovy/.yml/'))
   if [[ $jf_tests ]]; then
     for i in "${!jf_tests[@]}"; do
-      echo "${jf_tests[i]}"
-      echo "${config_names[i]}"
+      echo "converting ${jf_tests[i]} to ${config_names[i]}" 
       node "${parent_path}"/../index.js "${jf_tests[i]}" ./artifacts/"${config_names[i]}"
     done
   else

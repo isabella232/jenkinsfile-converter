@@ -19,6 +19,7 @@ jobs:
           root: ~/project
           paths:
             - artifacts/
+            - test/validateConfigs.sh
 
   test:
     docker:
