@@ -4,7 +4,7 @@ jobs:
   build:
     docker:
       - image: circleci/node:12.8.0
-    working_directory: ~/
+    working_directory: ~/project
     steps:
       - checkout
       - run:
@@ -12,7 +12,7 @@ jobs:
           command: mkdir -p ~/artifacts          
       - run:
           name: create config.yml
-          command: ./test/createConfigs.sh
+          command: ~/project/test/createConfigs.sh
       - store_artifacts:
           path: ~/artifacts
       - persist_to_workspace:
@@ -23,13 +23,13 @@ jobs:
   test:
     docker:
       - image: circleci/circleci-cli:0.1.5879-alpine
-    working_directory: ~/
+    working_directory: ~/project
     steps:
       - attach_workspace:
           at: ~/
       - run:
           name: validate configs
-          command: ./test/validateConfigs.sh
+          command: ~/project/test/validateConfigs.sh
 
 workflows:
   version: 2
