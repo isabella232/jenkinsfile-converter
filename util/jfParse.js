@@ -22,11 +22,8 @@ const isBalanced = ([...str]) => {
   );
 };
 
-// TODO: Handle block comments
-// Regex from Python convertor, need to replicate DOTALL with something like https://stackoverflow.com/questions/23455614/how-to-use-dotall-flag-for-regex-exec
-// string = re.sub(re.compile("/\*.*?\*/", re.DOTALL), "", string)
 const removeComments = (s) => 
-  s.replace(/\/\/.*?\n|#!.*?\n/g, '');
+  s.replace(/\/\/.*?\n|#!.*?\n|\/\*[\s\S]*?\*\/?\n/g, '');
 
 const jenkinsfileToArray = (s) => {
   return s.split('\n').filter(str => str.trim()).map(k => k.trim());
