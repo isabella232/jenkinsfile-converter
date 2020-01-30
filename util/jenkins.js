@@ -27,6 +27,23 @@ const getSteps = (arr) => {
   return stepsArr
 }
 
+// getEnvironment returns an kv obj of env vars. Currently only tested on stage level
+const getEnvironment = (arr) => {
+  let env = {};
+  for (let i = 0; i < arr.length; i++) {
+    if (checkDirective(arr[i], 'environment')) {
+      let list = getSection(arr.slice([i]))
+      for (let j = 0; j < list.length; j++) {
+        if (list[j].indexOf('=') > -1) {
+          let kvArr = list[j].split('=').map(k => k.trim());
+          env[kvArr[0]] = kvArr[1];
+        }
+      }
+    }
+  }
+  return env;
+}
+
 // returns Workflow obj with Jobs
 const processStanzas = (arr) => {
   let workflow = new Workflow
@@ -34,10 +51,13 @@ const processStanzas = (arr) => {
     if (checkDirective(arr[i], 'stages')) {
       // TODO: Sanity check how we want to handle 'stages'
     } else if (checkDirective(arr[i], 'stage')) {
-      workflow.newJob(getStageName(arr[i]));
+      let stageName = getStageName(arr[i]);
+      workflow.newJob(stageName);
+      workflow.jobs[workflow.jobs.length - 1].env = getEnvironment(getSection(arr.slice([i])));
     } else if (checkDirective(arr[i], 'agent')) {
       // TODO: Add logic to assign correct Docker executor based on JF
     } else if (checkDirective(arr[i], 'steps')) {
+      // TODO: Less hacky
       workflow.jobs[workflow.jobs.length - 1].steps = getSteps(arr.slice([i]));
     } else if (checkDirective(arr[i], 'post')) {
       workflow.newComment('post', getSection(arr.slice([i])));;
@@ -45,6 +65,8 @@ const processStanzas = (arr) => {
       workflow.newComment('options', getSection(arr.slice([i])));;
     } else if (checkDirective(arr[i], 'triggers')) {
       workflow.newComment('triggers', getSection(arr.slice([i])));;
+    } else if (checkDirective(arr[i], 'when')) {
+      workflow.newComment('when', getSection(arr.slice([i])));;
     }
   }
   
@@ -66,6 +88,5 @@ const processStanzas = (arr) => {
 const parseJenkinsfile = (jenkinsfile) => {
   return processStanzas(jenkinsfileToArray(removeComments(jenkinsfile)));
 }
-
 
 module.exports = { parseJenkinsfile };

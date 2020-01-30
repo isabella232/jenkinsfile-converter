@@ -11,6 +11,7 @@ const Workflow = function() {
 
 const Job = function(name) {
   this.name = name;
+  this.env = {};
   this.steps = [];
 }
 
