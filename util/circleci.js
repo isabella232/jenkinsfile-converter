@@ -17,11 +17,11 @@ executors:
     docker:
   # List of convenience images: https://circleci.com/docs/2.0/circleci-images/#latest-image-tags-by-language
       - image: circleci/python:3.6
-    working_directory: ~/proj
+    working_directory: ~/project
   macos:
     macos:
       xcode: "10.1.0"
-    working_directory: ~/proj
+    working_directory: ~/project
     shell: /bin/bash --login
   windows:
     machine:

@@ -1,0 +1,68 @@
+
+version: 2.1
+
+# You can replace your executor in any job with an executor defined here. A good start would be replacing the image in your Docker executor with one of our convience images.
+# The Docker executor meets the needs of over 80% of our users.
+# https://circleci.com/docs/2.0/executor-types
+executors:
+  default:
+    docker:
+  # List of convenience images: https://circleci.com/docs/2.0/circleci-images/#latest-image-tags-by-language
+      - image: circleci/python:3.6
+    working_directory: ~/project
+  macos:
+    macos:
+      xcode: "10.1.0"
+    working_directory: ~/project
+    shell: /bin/bash --login
+  windows:
+    machine:
+      resource_class: windows.medium
+      image: "windows-server-2019:201908-06"
+      shell: bash
+  
+workflows:
+  version: 2
+  build-test-deploy:
+    jobs:
+      - Build
+
+jobs:
+  Build:
+    executor: default
+    steps:
+      - run: sh 'mvn clean findbugs:findbugs package'
+      - run: }
+
+
+# options do not have a direct correlation to CircleCI syntax
+# Please refer to https://circleci.com/docs/2.0/configuration-reference/#workflows for more information.
+#  options {
+#  timestamps()
+#  }
+
+# post is not directly transferrable from Jenkinsfile to config.yml
+# Please refer to https://circleci.com/docs/2.0/configuration-reference/#the-when-attribute for more information.
+#  post {
+#  success {
+#  archiveArtifacts(artifacts: '**/target         * Multiline strings can be used for larger scripts. It is also possible to put scripts in your shared library
+#  * and load them with 'libaryResource'
+#  */
+#  sh """
+#  docker build -t ${IMAGE} .
+#  docker tag ${IMAGE} ${IMAGE}:${VERSION}
+#  docker push ${IMAGE}:${VERSION}
+#  """
+#  }
+#  }
+
+# post is not directly transferrable from Jenkinsfile to config.yml
+# Please refer to https://circleci.com/docs/2.0/configuration-reference/#the-when-attribute for more information.
+#  post {
+#  failure {
+#  mail to: 'team@example.com',
+#  subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+#  body: "Something is wrong with ${env.BUILD_URL}"
+#  }
+#  }
+
