@@ -3,8 +3,8 @@
 set -eu
 
 create_configs() {
-  jf_tests=($(find ./test/configs/declarative-examples -name "*.groovy"))
-  config_names=($(find ./test/configs/declarative-examples -name "*.groovy" | sed 's/.*\///' | sed 's/.groovy/.yml/'))
+  jf_tests=($(find ~/project/test/configs/declarative-examples -name "*.groovy"))
+  config_names=($(find ~/project/test/configs/declarative-examples -name "*.groovy" | sed 's/.*\///' | sed 's/.groovy/.yml/'))
   if [[ $jf_tests ]]; then
     for i in "${!jf_tests[@]}"; do
       echo "${jf_tests[i]}"

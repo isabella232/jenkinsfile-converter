@@ -3,7 +3,7 @@
 set -eu
 
 validate_configs() {
-  configs=($(find ./artifacts -name "*.yml"))
+  configs=($(find ~/artifacts -name "*.yml"))
   failed=0
   passed=0
   if [[ $configs ]]; then
