@@ -17,7 +17,7 @@ Only declarative `Jenkinsfile`s are currently supported.
 | post | [when attribute](https://circleci.com/docs/2.0/configuration-reference/#the-when-attribute) | Marked for commenting with link to CCI docs |
 | stages | [workflows](https://circleci.com/docs/2.0/workflows/) | Sequential (naive) completed, parallel not yet supported. |
 | steps | [step](https://circleci.com/docs/2.0/jobs-steps/#steps-overview) | Completed |
-| environment | [environment](https://circleci.com/docs/2.0/env-vars/) |  |
+| environment | [environment](https://circleci.com/docs/2.0/env-vars/) | Stage-level env vars populate on executor level |
 | options | N/A | Marked for commenting with link to CCI docs |
 | parameters | [parameters](https://circleci.com/docs/2.0/reusing-config/#using-the-parameters-declaration) | Not started |
 | triggers | [cron](https://circleci.com/docs/2.0/workflows/#scheduling-a-workflow) | Marked for commenting with link to CCI docs |
