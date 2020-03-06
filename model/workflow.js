@@ -10,6 +10,7 @@ const Workflow = function() {
   // AKA pipeline parameters
   this.env = {};
   this.name = "";
+  // array of commented lines that are appended to the end of a config file
   this.comments = [];
   this.jobs = []; 
   this.addComment = (kw, body) => {
@@ -41,4 +42,4 @@ const Comment = function(kw, body) {
   this.body = body;
 }
 
-module.exports = { Pipeline, Workflow, Job, Step }
+module.exports = { Pipeline, Workflow, Job, Step, Comment }

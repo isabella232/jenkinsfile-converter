@@ -1,7 +1,29 @@
 version: 2.1
 
 jobs:
-  build:
+  build-and-unit-test:
+    docker:
+      - image: circleci/node:12.8.0
+    working_directory: ~/project
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-npm-deps-{{ .Branch }}-{{ checksum "package-lock.json "}}
+            - v1-npm-deps-{{ .Branch }}
+            - v1-npm-deps
+      - run: 
+          name: install dependencies
+          command: npm i
+      - save_cache:
+          key: v1-npm-deps-{{ .branch}}-{{ checksum "package-lock.json "}}
+          paths:
+            -node_modules
+      - run:
+          name: run unit tests
+          command: npm test
+  
+  generate-configs:
     docker:
       - image: circleci/node:12.8.0
     working_directory: ~/project
@@ -20,15 +42,15 @@ jobs:
           paths:
             - artifacts/
             - test/validateConfigs.sh
-
-  test:
+  
+  output-smoke-test:
     docker:
       - image: circleci/node:12.8.0
     working_directory: ~/project
     steps:
       - run:
           name: install CircleCI CLI
-          command: curl -fLSs https://circle.ci/cli | sudo bash
+          command: curl -fLSs --http1.1 https://circle.ci/cli | sudo bash
       - attach_workspace:
           at: ~/project
       - run:
@@ -39,8 +61,11 @@ workflows:
   version: 2
   btd:
     jobs:
-      - build
-      - test:
+      - build-and-unit-test
+      - generate-configs:
           requires:
-            - build
+            - build-and-unit-test
+      - output-smoke-test:
+          requires:
+            - generate-configs
 
