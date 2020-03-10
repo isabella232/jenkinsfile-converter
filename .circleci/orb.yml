@@ -1,7 +1,9 @@
 version: 2.1
 description: |
-  POC for converting declarative Jenkinsfiles to CircleCI 2.0 configs.
-
+  Open-source proof-of-concept for converting a declarative Jenkinsfile to CircleCI 2.0 config.yml. \
+  This convertor is still in Alpha, and full compatability is not guaranteed. \
+  config.yml is provided as an build artifact accessible via the CircleCI UI upon successful conversion. \
+  Please visit https://github.com/heug/jenkinsfile-circleci to view source code, submit issues, and contribute!
 executors:
   base:
     docker:
@@ -37,7 +39,7 @@ commands:
     description: "Convert Jenkinsfile to CircleCI config.yml"
     parameters:
       input-path:
-        description: Filepath and filename of Jenkinsfile.
+        description: Filepath and filename of Jenkinsfile to be converted.
         type: string
         default: "~/jenkinsfile-export/Jenkinsfile"
     steps:
@@ -59,8 +61,10 @@ commands:
       - run: circleci config validate ~/deliverables/config.yml
 
 examples:
-  jenkinsfile-to-circleci:
-    description: Easily generate a CircleCI config.yml from an existing Jenkinsfile.
+  simple:
+    description: |
+      Easily generate a CircleCI config.yml from an existing Jenkinsfile. Expects Jenkinsfile to be \
+      in the root directory of the project
     usage:
         version: 2.1
 
@@ -77,6 +81,42 @@ examples:
             steps:
               - j-cci/install
               - j-cci/convert-to-circleci
+          validate:
+            executor: j-cci/base
+            steps:
+              - j-cci/validate-deliverables
+
+        workflows:
+          version: 2
+          jcci:
+            jobs:
+              - export-jenkinsfile
+              - convert:
+                  requires:
+                    - export-jenkinsfile
+              - validate:
+                  requires:
+                    - convert
+
+  custom-Jenkinsfile-path:
+    description: Uses `jenkinsfile-path` parameter to specify a custom path to the project's Jenkinsfile
+    usage:
+        version: 2.1
+
+        orbs:
+          j-cci: heug/jcci@x.y
+
+        jobs:
+          export-jenkinsfile:
+            executor: j-cci/base
+            steps:
+              - j-cci/setup
+          convert:
+            executor: j-cci/convertor
+            steps:
+              - j-cci/install
+              - j-cci/convert-to-circleci:
+                  jenkinsfile-path: "./custom/directory/Jenkinsfile"
           validate:
             executor: j-cci/base
             steps:
