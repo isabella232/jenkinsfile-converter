@@ -1,29 +1,34 @@
 const { CircleConfig } = require('../model/CircleConfig.js');
 const { CircleJob } = require('../model/CircleJob.js');
-const { CircleJobDockerContainer } = require('../model/CircleJobDockerContainer.js')
-const { pullDirective, checkDirective,
-  removeComments, jenkinsfileToArray,
-  getBalancedIndex, getSection } = require('./jfParse.js');
+const { CircleJobDockerContainer } = require('../model/CircleJobDockerContainer.js');
+const {
+  pullDirective,
+  checkDirective,
+  removeComments,
+  jenkinsfileToArray,
+  getBalancedIndex,
+  getSection
+} = require('./jfParse.js');
 
 const commentsLib = {
-  "post": {
-    "reason": " is not directly transferrable from Jenkinsfile to config.yml.",
-    "link": "https://circleci.com/docs/2.0/configuration-reference/#the-when-attribute"
+  post: {
+    reason: ' is not directly transferrable from Jenkinsfile to config.yml.',
+    link: 'https://circleci.com/docs/2.0/configuration-reference/#the-when-attribute'
   },
-  "options": {
-    "reason": " do not have a direct correlation to CircleCI syntax.",
-    "link": "https://circleci.com/docs/2.0/configuration-reference/#workflows"
+  options: {
+    reason: ' do not have a direct correlation to CircleCI syntax.',
+    link: 'https://circleci.com/docs/2.0/configuration-reference/#workflows'
   },
-  "triggers": {
-    "reason": ` are supported in CircleCI, however we strongly recommend you achieve your
+  triggers: {
+    reason: ` are supported in CircleCI, however we strongly recommend you achieve your
   #  first green build before implementing this feature.`,
-    "link": "https://circleci.com/docs/2.0/workflows/#scheduling-a-workflow"
+    link: 'https://circleci.com/docs/2.0/workflows/#scheduling-a-workflow'
   },
-  "when": {
-    "reason": " is treated differently in CircleCI from Jenkins.",
-    "link": "https://circleci.com/docs/2.0/configuration-reference/#the-when-attribute"
+  when: {
+    reason: ' is treated differently in CircleCI from Jenkins.',
+    link: 'https://circleci.com/docs/2.0/configuration-reference/#the-when-attribute'
   }
-}
+};
 
 const addCommentWithDescription = (circleConfig, kw, linesArr, userDict) => {
   const dict = userDict || commentsLib;
@@ -32,21 +37,19 @@ const addCommentWithDescription = (circleConfig, kw, linesArr, userDict) => {
     circleConfig.comments.push(kw + dict[kw].reason);
     circleConfig.comments.push('Please refer to ' + dict[kw].link + ' for more information.');
     circleConfig.comments.push(linesArr.join('\n'));
-  }
-  catch {
+  } catch {
     circleConfig.comments.push(kw + ' is not recognized as a valid keyword.');
     circleConfig.comments.push(linesArr.join('\n'));
-  }
-  finally {
+  } finally {
     circleConfig.comments.push('');
   }
-}
+};
 
 const getStageName = (str) => {
   let begin = str.indexOf('(') + 2;
   let len = str.lastIndexOf(')') - str.indexOf('(') - 3;
   return str.substr(begin, len);
-}
+};
 
 const getSteps = (arr) => {
   let stepsArr = [];
@@ -71,30 +74,33 @@ const getSteps = (arr) => {
       // https://github.com/heug/jenkinsfile-circleci/blob/fae4632ac6ce68be037ed1499bfabc12fdd057f3/util/configJobs.js#L21
       // Traling space is to pass through Maven options
       if (cmd.includes(': ')) {
-        stepsArr.push({ run: 'echo "The following command will not run successfully on CircleCI. Please review our documentation." && exit 1' });
+        stepsArr.push({
+          run:
+            'echo "The following command will not run successfully on CircleCI. Please review our documentation." && exit 1'
+        });
       }
       stepsArr.push({ run: cmd });
     }
   }
-  return stepsArr
-}
+  return stepsArr;
+};
 
 // getEnvironment returns an kv obj of env vars. naive implementation
 const getEnvironment = (arr) => {
   let env = {};
   for (let i = 0; i < arr.length; i++) {
     if (checkDirective(arr[i], 'environment')) {
-      let list = getSection(arr.slice([i]))
+      let list = getSection(arr.slice([i]));
       for (let j = 0; j < list.length; j++) {
         if (list[j].indexOf('=') > -1) {
-          let kvArr = list[j].split('=').map(k => k.trim());
+          let kvArr = list[j].split('=').map((k) => k.trim());
           env[kvArr[0]] = kvArr[1];
         }
       }
     }
   }
   return env;
-}
+};
 
 // returns Workflow obj with Jobs
 const processStanzas = (arr) => {
@@ -114,19 +120,19 @@ const processStanzas = (arr) => {
       },
       macos: {
         macos: {
-          xcode: "10.1.0",
+          xcode: '10.1.0'
         },
         working_directory: '~/proj',
         shell: '/bin/bash --login'
       },
       windows: {
         machine: {
-          image: "windows-server-2019:201908-06"
+          image: 'windows-server-2019:201908-06'
         },
         resource_class: 'windows.medium',
         shell: 'bash'
       }
-    }
+    };
 
     ret.executors.default.working_directory = '~/proj';
   }
@@ -168,7 +174,6 @@ const processStanzas = (arr) => {
 
         ret.jobs[stageName] = lastJob;
         jobQueue.push(stageName);
-
       } else if (checkDirective(arr[i], 'agent')) {
         // TODO: Add logic to assign correct Docker executor based on JF
       } else if (checkDirective(arr[i], 'steps')) {
@@ -185,7 +190,7 @@ const processStanzas = (arr) => {
       }
     }
 
-    ret.workflows["build-test-deploy"] = { jobs: [] };
+    ret.workflows['build-test-deploy'] = { jobs: [] };
 
     {
       let lastJob = '';
@@ -196,8 +201,8 @@ const processStanzas = (arr) => {
           return;
         }
 
-        if (ret.workflows["build-test-deploy"].jobs.length === 0) {
-          ret.workflows["build-test-deploy"].jobs.push(jobName);
+        if (ret.workflows['build-test-deploy'].jobs.length === 0) {
+          ret.workflows['build-test-deploy'].jobs.push(jobName);
         } else {
           const jobWithCondition = {};
 
@@ -205,7 +210,7 @@ const processStanzas = (arr) => {
             requires: [lastJob]
           };
 
-          ret.workflows["build-test-deploy"].jobs.push(jobWithCondition);
+          ret.workflows['build-test-deploy'].jobs.push(jobWithCondition);
         }
 
         lastJob = jobName;
@@ -214,10 +219,10 @@ const processStanzas = (arr) => {
   }
 
   return ret;
-}
+};
 
 const parseJenkinsfile = (jenkinsfile) => {
   return processStanzas(jenkinsfileToArray(removeComments(jenkinsfile)));
-}
+};
 
 module.exports = { parseJenkinsfile };

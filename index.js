@@ -26,10 +26,10 @@ const { parseJenkinsfile } = require('./util/jenkins.js');
   }
 
   {
-    const circleConfig = parseJenkinsfile(jenkinsfile)
+    const circleConfig = parseJenkinsfile(jenkinsfile);
     let circleYAML = circleConfig.toYAML();
 
-    // Hacking - Advisory for executors is inserted as 
+    // Hacking - Advisory for executors is inserted as
     // We remove the property definition here and put the advisory text as comments.
     circleYAML = circleYAML.replace(/^\s*advisory_for_users: \|-\s*\n\n/m, '');
 
