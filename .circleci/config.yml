@@ -31,14 +31,14 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-npm-deps-{{ .Branch }}-{{ checksum "package-lock.json "}}
+            - v1-npm-deps-{{ .Branch }}-{{ checksum "package-lock.json" }}
             - v1-npm-deps-{{ .Branch }}
             - v1-npm-deps
       - run:
           name: install dependencies
           command: npm i
       - save_cache:
-          key: v1-npm-deps-{{ .branch}}-{{ checksum "package-lock.json "}}
+          key: v1-npm-deps-{{ .Branch }}-{{ checksum "package-lock.json" }}
           paths:
             - node_modules
       - run:
@@ -73,10 +73,22 @@ workflows:
   version: 2
   btd:
     jobs:
-      - build-and-unit-test
+      - build-and-unit-test:
+          filters:
+            branches:
+              ignore:
+                - json-conversion
       - generate-configs:
+          filters:
+            branches:
+              ignore:
+                - json-conversion
           requires:
             - build-and-unit-test
       - output-smoke-test:
+          filters:
+            branches:
+              ignore:
+                - json-conversion
           requires:
             - generate-configs

@@ -1,39 +1,83 @@
-// This is a proof of concept of converting declarative Jenkinsfiles to CircleCI 2.0 config
-
-// The intention of this script in its current state is not to be the interface that a user will interact with, but just a POC of the conversion from Jenkinsfiles to CCI config.
-
 const fs = require('fs');
-const path = require('path');
+const https = require('https');
+const querystring = require('querystring');
 
-const { openFile, verifyValid } = require('./util/file.js');
-const { parseJenkinsfile } = require('./util/jenkins.js');
-
-// TODO: Groovy library to interact with Jenkinsfiles?
-// TODO: YAML Library to handle/validate output?
-
-// TODO: Pair Jenkinsfiles syntax key with CCI syntax key
+const { map } = require('./mapping/mapper.js');
 
 {
-  const inputPath = process.argv[2];
-  const outputPath = process.argv[3] || 'config.yml';
-  const jenkinsfile = openFile(inputPath);
+  const groovyToJSONHTTPSCB = (resolve, reject, res) => {
+    const dataChunks = [];
 
-  if (!verifyValid(jenkinsfile)) {
-    //TODO: return error and change exit
-    console.error(
-      'Invalid configuration. This tool only supports Jenkinsfiles using declarative pipelines.'
-    );
-  }
+    res.on('data', (data) => {
+      dataChunks.push(data);
+    });
 
-  {
-    const circleConfig = parseJenkinsfile(jenkinsfile);
-    let circleYAML = circleConfig.toYAML();
+    res.on('end', () => {
+      const resBodyStr = Buffer.concat(dataChunks).toString();
 
-    // Hacking - Advisory for executors is inserted as
-    // We remove the property definition here and put the advisory text as comments.
-    circleYAML = circleYAML.replace(/^\s*advisory_for_users: \|-\s*\n\n/m, '');
+      if (res.statusCode === 200) {
+        resolve(resBodyStr);
+      } else {
+        reject(resBodyStr);
+      }
+    });
 
-    fs.writeFileSync(path.join(__dirname, outputPath), circleYAML);
-    console.log('file saved!');
-  }
+    res.on('error', (err) => {
+      reject(err);
+    });
+  };
+
+  const groovyToJSONRunner = (groovyStr, resolve, reject) => {
+    try {
+      const bodyData = querystring.stringify({ jenkinsfile: groovyStr });
+      const req = https.request(
+        'https://jenkinsto.cc/i',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': bodyData.length
+          }
+        },
+        groovyToJSONHTTPSCB.bind(null, resolve, reject)
+      );
+
+      req.write(bodyData);
+      req.end();
+    } catch (err) {
+      reject(err);
+    }
+  };
+
+  const groovyToJSONPromise = (groovyStr) => {
+    return new Promise(groovyToJSONRunner.bind(null, groovyStr));
+  };
+
+  // Main from here
+  (async () => {
+    // TODO: Avoid nesting try-catch
+    try {
+      const inputPath = process.argv[2];
+      const outputPath = process.argv[3];
+      const jenkinsJSON = await groovyToJSONPromise(fs.readFileSync(inputPath, 'utf8'));
+
+      try {
+        const jenkinsObj = JSON.parse(jenkinsJSON).data.json;
+        const circleConfig = map(jenkinsObj);
+        const configYml = circleConfig.toYAML();
+
+        console.log(configYml);
+
+        if (typeof outputPath === typeof '') {
+          fs.writeFileSync(outputPath, configYml);
+        }
+      } catch (err) {
+        console.error(err);
+        console.error('Error in conversion');
+      }
+    } catch (err) {
+      console.error(err);
+      console.error('Error in Jenkins');
+    }
+  })();
 }
