@@ -1,7 +1,7 @@
 const isLiteral = (step) => {
   return (
     Object.prototype.hasOwnProperty.call(step[`arguments`][0][`value`], `isLiteral`) &&
-    !step[`arguments`][0][`value`][`isLiteral`]
+    step[`arguments`][0][`value`][`isLiteral`]
   );
 };
 
