@@ -1,13 +1,4 @@
-const isLiteral = (step) => {
-  if (
-    Object.prototype.hasOwnProperty.call(step[`arguments`][0][`value`], `isLiteral`) &&
-    !step[`arguments`][0][`value`][`isLiteral`]
-  ) {
-    return false;
-  } else {
-    return true;
-  }
-};
+const { isLiteral } = require('./mapper_utils.js');
 
 const fnPerVerb = (stepsArr) => {
   let steps = [];

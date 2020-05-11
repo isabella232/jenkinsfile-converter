@@ -12,6 +12,8 @@ const { CircleJob } = require('../model/CircleJob.js');
 const { CircleWorkflowItem } = require('../model/CircleWorkflowItem.js');
 const { CircleWorkflowJobCondition } = require('../model/CircleWorkflowJobCondition.js');
 const { fnPerVerb } = require('./mapper_steps.js');
+const { assignedFields } = require('./mapper_utils.js');
+const { mapConditions } = require('./mapper_conditions.js');
 
 const map = (arr) => {
   const config = new CircleConfig(2.1);
@@ -31,6 +33,24 @@ const map = (arr) => {
   return config;
 };
 
+const mapJob = (stage, workflow, conditions, config) => {
+  let job = new CircleJob();
+
+  job[`docker`] = [{ image: 'cimg/base' }];
+
+  mapConditions(stage, conditions);
+
+  let workflowJobName = stage.name.replace(/ /g, '-').toLowerCase();
+  if (assignedFields(conditions)) {
+    workflow.jobs.push({ [workflowJobName]: conditions });
+  } else {
+    workflow.jobs.push(workflowJobName);
+  }
+
+  job.steps = fnPerVerb(stage.branches[0].steps);
+  config[workflowJobName] = job;
+};
+
 const mapStages = (stages, config) => {
   const workflow = new CircleWorkflowItem();
   // Hard-coded workflow name--no multiple workflow support yet
@@ -38,7 +58,6 @@ const mapStages = (stages, config) => {
 
   stages.forEach((stage) => {
     const workflowJobConditionObj = new CircleWorkflowJobCondition();
-    let job = new CircleJob();
     // let envVars = stage['environment'];
 
     if (workflow.jobs.length > 0) {
@@ -48,34 +67,15 @@ const mapStages = (stages, config) => {
       } else {
         precedingJobName = Object.keys(workflow.jobs[workflow.jobs.length - 1]);
       }
+
       workflowJobConditionObj['requires'] = precedingJobName;
     }
 
     if (!stage.parallel) {
-      job[`docker`] = [{ image: 'cimg/base' }];
-
-      let workflowJobName = stage.name.replace(/ /g, '-');
-      if (workflowJobConditionObj.requires === undefined) {
-        workflow.jobs.push(workflowJobName);
-      } else {
-        workflow.jobs.push({ [workflowJobName]: workflowJobConditionObj });
-      }
-
-      job.steps = fnPerVerb(stage.branches[0].steps);
-      config['jobs'][workflowJobName] = job;
+      mapJob(stage, workflow, workflowJobConditionObj, config['jobs']);
     } else {
       stage.parallel.forEach((parallelStage) => {
-        job[`docker`] = [{ image: 'cimg/base' }];
-
-        let workflowJobName = parallelStage.name.replace(/ /g, '-');
-        if (workflowJobConditionObj.requires === undefined) {
-          workflow.jobs.push(workflowJobName);
-        } else {
-          workflow.jobs.push({ [workflowJobName]: workflowJobConditionObj });
-        }
-
-        job.steps = fnPerVerb(parallelStage.branches[0].steps);
-        config['jobs'][workflowJobName] = job;
+        mapJob(parallelStage, workflow, workflowJobConditionObj, config['jobs']);
       });
     }
 
@@ -95,4 +95,4 @@ const mapStages = (stages, config) => {
   });
 };
 
-module.exports = { map, mapStages };
+module.exports = { map };
