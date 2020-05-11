@@ -1,5 +1,3 @@
-const { CircleStep } = require('../model/CircleStep.js');
-
 const isLiteral = (step) => {
   if (
     Object.prototype.hasOwnProperty.call(step[`arguments`][0][`value`], `isLiteral`) &&
@@ -14,33 +12,41 @@ const isLiteral = (step) => {
 const fnPerVerb = (stepsArr) => {
   let steps = [];
   stepsArr.map((step) => {
-    if (!isLiteral(step)) {
-      let stepObject = {};
-      stepObject.comment =
-        'Translation of non-literal commands are not currently supported by this tool\n';
-      stepObject.comment += step.name + ' ' + step.arguments[0].value.value;
-      steps.push(stepObject);
+    let output = directiveToCommand(step);
+    if (!Array.isArray(output)) {
+      steps.push(output);
     } else {
-      let output = directiveToCommand(step);
-      if (!Array.isArray(output)) {
-        steps.push(output);
-      } else {
-        output.map((stepObject) => steps.push(stepObject));
-      }
+      output.map((stepObject) => steps.push(stepObject));
     }
   });
   return steps;
 };
 
 const directiveToCommand = (step) => {
-  let stepObject = new CircleStep();
+  let stepObject = {};
 
   const directives = {
+    script: () => {
+      // {"sh":  "Run arbitrary Java"}
+      stepObject[`run`] = {};
+      stepObject[`run`][`name`] = 'script is not currently supported.';
+      stepObject[`run`][`command`] = 'exit 1';
+      stepObject[`run`][`JFC_STACK_TRACE`] =
+        step.name + ' ' + step[`arguments`][0][`value`][`value`];
+      return stepObject;
+    },
     sh: () => {
       // {"sh":  "Shell command"}
-      if (!step[`arguments`][0][`value`][`isLiteral`]) {
-        stepObject[`comment`] =
-          'Translation of non-literal commands are not currently supported by this tool';
+      if (!isLiteral(step)) {
+        stepObject[`run`] = {};
+        stepObject[`run`][`name`] = 'Confirm environment variables are set before running';
+        stepObject[`run`][`command`] = 'exit 1';
+        stepObject[`run`][`JFC_STACK_TRACE`] =
+          'Please refer to environment variable documentation for more information' +
+          '\nhttps://circleci.com/docs/2.0/env-vars/\n' +
+          step.name +
+          ' ' +
+          step[`arguments`][0][`value`][`value`];
       } else {
         stepObject[`run`] = step[`arguments`][0][`value`][`value`];
       }
@@ -59,8 +65,14 @@ const directiveToCommand = (step) => {
     catchError: () => {
       // {"catchError": "Catch error and set build result to failure"}
       // Consider `when` step
-      stepObject[`comment`] =
-        'catchError is not currently supported. Please refer to the `when` documentation for advice on usage \
+      stepObject[`run`] = {};
+      stepObject[`run`][`name`] = 'catchError is not currently supported.';
+      stepObject[`run`][`command`] = 'exit 1';
+      stepObject[`run`][`JFC_STACK_TRACE`] =
+        step.name +
+        ' ' +
+        step[`arguments`][0][`value`][`value`] +
+        'Please refer to the `when` documentation for advice on usage \
                 https://circleci.com/docs/2.0/configuration-reference/#the-when-step-requires-version-21\n \
                 https://support.circleci.com/hc/en-us/articles/360043188514-How-to-Retry-a-Failed-Step-with-when-Attribute-';
       return stepObject;
@@ -95,8 +107,15 @@ const directiveToCommand = (step) => {
     // {"unarchive":  "Copy archived artifacts into the workspace"}
     // {"withContext":  "Use contextual object from inte"}
     default: () => {
-      stepObject.comment = 'Unsupported keyword.\n';
-      stepObject.comment += step.name + ' ' + step.arguments[0].value.value;
+      stepObject[`run`] = {};
+      stepObject[`run`][`name`] = 'Keyword not recognized\n';
+      stepObject[`run`][`command`] = 'exit 1';
+      stepObject[`run`][`JFC_STACK_TRACE`] =
+        'Please refer to CircleCI documentation (https://circleci.com/docs/reference-2-1/#section=configuration)\n' +
+        'and/or submit an issue at https://github.com/circleci/jenkinsfile-convertor\n' +
+        step.name +
+        ' ' +
+        step.arguments[0].value.value;
       return stepObject;
     }
   };
