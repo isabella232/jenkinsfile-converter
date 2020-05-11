@@ -28,7 +28,7 @@ const directiveToCommand = (step) => {
     },
     sh: () => {
       // {"sh":  "Shell command"}
-      if (isLiteral(step)) {
+      if (!isLiteral(step)) {
         stepObject[`run`] = {};
         stepObject[`run`][`name`] = 'Confirm environment variables are set before running';
         stepObject[`run`][`command`] = 'exit 1';
