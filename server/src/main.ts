@@ -23,7 +23,13 @@ class MainApp {
             VersionNumberResponder.getVersion
         );
 
-        // /i/do is a shorthand
+        // '/i' is a shorthand
+        this.expWrapper.armEndpoint(
+            'POST',
+            '/i',
+            JenkinsToCCIResponder.convertJenkinsfileToConfigYml
+        );
+        // /i/do is also a shorthand
         this.expWrapper.armEndpoint(
             'POST',
             '/i/do',
@@ -38,14 +44,6 @@ class MainApp {
         this.expWrapper.armEndpoint(
             'POST',
             '/i/to-json',
-            JenkinsToCCIResponder.convertJenkinsfileToJSON
-        );
-
-        this.expWrapper.armEndpoint(
-            'POST',
-            '/i',
-            // TODO: Replace convertJenkinsfileToJSON with convertJenkinsfileToConfigYml
-            // It is there only for backward compatibility
             JenkinsToCCIResponder.convertJenkinsfileToJSON
         );
     }
