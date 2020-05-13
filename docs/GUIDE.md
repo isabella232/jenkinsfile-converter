@@ -16,11 +16,11 @@ Depending on the use case, you may require the usage of a [machine executor](htt
 
 Many of the configuration options within CircleCI jobs don't have equivalents to Jenkins' offerings. We recommend starting with the following keys to get a richer experience from CircleCI:
 
-[Checkout code](https://circleci.com/docs/2.0/configuration-reference/#checkout)
-[Resource class](https://circleci.com/docs/2.0/configuration-reference/#resource_class)
-[Parallelism](https://circleci.com/docs/2.0/configuration-reference/#parallelism)
-Caches, [saving](https://circleci.com/docs/2.0/configuration-reference/#save_cache) and [restoring](https://circleci.com/docs/2.0/configuration-reference/#restore_cache)
-[Store Artifacts](https://circleci.com/docs/2.0/configuration-reference/#store_artifacts)
+- [Checkout code](https://circleci.com/docs/2.0/configuration-reference/#checkout)
+- [Resource class](https://circleci.com/docs/2.0/configuration-reference/#resource_class)
+- [Parallelism](https://circleci.com/docs/2.0/configuration-reference/#parallelism)
+- Caches, [saving](https://circleci.com/docs/2.0/configuration-reference/#save_cache) and [restoring](https://circleci.com/docs/2.0/configuration-reference/#restore_cache)
+- [Store Artifacts](https://circleci.com/docs/2.0/configuration-reference/#store_artifacts)
 
 ## Steps
 
