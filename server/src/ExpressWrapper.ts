@@ -18,9 +18,7 @@ class ExpressWrapper {
 
     constructor() {
         this.app.use(bodyParser.raw({ type: '*/*' }));
-        this.app.use((req, res, next) =>
-            this.setVersionInHeader(req, res, next)
-        );
+        this.app.use((req, res, next) => this.setGlobalHeaders(req, res, next));
     }
 
     public startListening(): Promise<ExpressWrapper['httpServers']> {
@@ -67,12 +65,12 @@ class ExpressWrapper {
         }
     }
 
-    private setVersionInHeader(
+    private setGlobalHeaders(
         req: express.Request,
         res: express.Response,
         next: express.NextFunction
     ) {
-        res.setHeader(
+        res.set('Access-Control-Allow-Origin', '*').set(
             'X-App-Version',
             this.services.VersionNumber.versionNumber
         );
