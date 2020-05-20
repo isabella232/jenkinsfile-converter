@@ -1,14 +1,17 @@
 import * as axios from 'axios';
+import * as fs from 'fs';
 import * as util from 'util';
 
 import * as jfcModule from '../../assets/jfc-module.js';
-import * as webUIHTML from '../../assets/cli.html';
 
 import type * as express from 'express';
 
 import type { ExpressWrapper } from '../ExpressWrapper';
 
 declare const __JENKINS_TARGET: string;
+require.extensions &&
+    (require.extensions['.html'] = (module: NodeJS.Module, filename: string) =>
+        (module.exports = fs.readFileSync(filename)));
 
 class JenkinsToCCIResponder {
     public static webUI(
@@ -18,7 +21,7 @@ class JenkinsToCCIResponder {
     ): void {
         res.status(200)
             .set('Content-Type', 'text/html; charset=UTF-8')
-            .end(webUIHTML);
+            .end(require('../../assets/cli.html'));
     }
 
     public static convertJenkinsfileToConfigYml(
