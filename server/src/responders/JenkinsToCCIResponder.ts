@@ -2,6 +2,7 @@ import * as axios from 'axios';
 import * as util from 'util';
 
 import * as jfcModule from '../../assets/jfc-module.js';
+import * as webUIHTML from '../../assets/cli.html';
 
 import type * as express from 'express';
 
@@ -10,6 +11,16 @@ import type { ExpressWrapper } from '../ExpressWrapper';
 declare const __JENKINS_TARGET: string;
 
 class JenkinsToCCIResponder {
+    public static webUI(
+        services: ExpressWrapper['services'],
+        req: express.Request,
+        res: express.Response
+    ): void {
+        res.status(200)
+            .set('Content-Type', 'text/html; charset=UTF-8')
+            .end(webUIHTML);
+    }
+
     public static convertJenkinsfileToConfigYml(
         services: ExpressWrapper['services'],
         req: express.Request,

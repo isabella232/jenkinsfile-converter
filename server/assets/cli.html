@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<meta charset="UTF-8">
+<title>Jenkinsfile Converter for CircleCI</title>
+
+<style>
+    button#do-convert {
+        font-size: 2em;
+    }
+
+    div#results textarea {
+        width: 80em;
+        height: 24em;
+    }
+</style>
+
+<!--
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-167183242-1"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'UA-167183242-1');
+</script>
+-->
+
+<script>
+    const convert = async (jfString) => {
+        return await fetch('http://localhost:28080/i', {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'text/plain; charset=UTF-8'
+            },
+            redirect: 'follow',
+            body: jfString
+        });
+    };
+
+    const readFileAndConvert = (file) => {
+        return new Promise((resolve, reject) => {
+            try {
+                const reader = new FileReader();
+
+                reader.onload = async (evt) => {
+                    resolve(await convert(evt.target.result));
+                };
+
+                reader.onerror = (err) => {
+                    reject(err);
+                };
+
+                reader.readAsText(file);
+            } catch (err) {
+                reject(err);
+            }
+        });
+    };
+
+    const updateText = (elem, text) => {
+        while (elem.firstChild) {
+            elem.removeChild(elem.firstChild);
+        }
+
+        if (text) {
+            elem.appendChild(document.createTextNode(text));
+        }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const form = document.querySelector('form#jenkinsfile-form');
+        const progress = document.querySelector('form#jenkinsfile-form span#convert-progress');
+        const results = document.createElement('div');
+
+        results.id = 'results';
+
+        form.addEventListener('submit', async (evt) => {
+            evt.preventDefault();
+
+            try {
+                if (document.querySelector('input#jenkinsfile').files.length !== 1) {
+                    alert('Specify one (and only one) Jenkinsfile!');
+                    return;
+                }
+
+                updateText(progress, 'Working...');
+
+                {
+                    const resultWrapper = document.createElement('div');
+                    const labelP = document.createElement('p');
+                    const filenameCode = document.createElement('code');
+                    const configYmlArea = document.createElement('textarea');
+
+                    const apiRes = await readFileAndConvert(document.querySelector('input#jenkinsfile').files[0]);
+
+                    filenameCode.appendChild(document.createTextNode(document.querySelector('input#jenkinsfile').files[0].name));
+                    configYmlArea.value = await apiRes.text();
+
+                    labelP.appendChild(document.createTextNode(`${apiRes.ok ? 'Success' : 'Error'}: `));
+                    labelP.appendChild(filenameCode);
+
+                    resultWrapper.appendChild(labelP);
+                    resultWrapper.appendChild(configYmlArea);
+
+                    if (results.firstElementChild !== null) {
+                        results.insertBefore(document.createElement('hr'), results.firstElementChild);
+                    }
+                    results.insertBefore(resultWrapper, results.firstElementChild);
+
+                    form.parentElement.insertBefore(results, form.nextElementSibling);
+                }
+
+                updateText(progress);
+            } catch (err) {
+                console.log(err);
+                alert('Unknown error happened. Please try again.');
+            }
+        });
+    });
+</script>
+
+<h1>Jenkinsfile Converter for CircleCI</h1>
+
+<form id="jenkinsfile-form">
+    <p>Choose your Jenkins file to convert: <input type="file" id="jenkinsfile"></p>
+    <p><button type="submit" id="do-convert">Convert to CircleCI <code>config.yml</code>!</button> <span id="convert-progress"></span></p>
+</form>
