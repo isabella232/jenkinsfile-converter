@@ -9,9 +9,12 @@ import type * as express from 'express';
 import type { ExpressWrapper } from '../ExpressWrapper';
 
 declare const __JENKINS_TARGET: string;
+
+/* istanbul ignore next */
 require.extensions &&
     (require.extensions['.html'] = (module: NodeJS.Module, filename: string) =>
         (module.exports = fs.readFileSync(filename)));
+const cliHTML = require('../../assets/cli.html');
 
 class JenkinsToCCIResponder {
     public static webUI(
@@ -21,7 +24,7 @@ class JenkinsToCCIResponder {
     ): void {
         res.status(200)
             .set('Content-Type', 'text/html; charset=UTF-8')
-            .end(require('../../assets/cli.html'));
+            .end(cliHTML);
     }
 
     public static convertJenkinsfileToConfigYml(

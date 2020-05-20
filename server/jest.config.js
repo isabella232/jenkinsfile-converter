@@ -7,6 +7,9 @@ module.exports = {
             }
         }
     },
+    moduleNameMapper: {
+        '\\.html$': '<rootDir>/__mocks__/fileMock.js'
+    },
     preset: 'ts-jest',
     reporters: [
         'default',
