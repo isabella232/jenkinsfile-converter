@@ -27,7 +27,7 @@ module.exports = (env, argv) => {
                                         argv.mode === 'production'
                                             ? 'prod'
                                             : 'devel'
-                                    }`
+                                    } (${new Date().toUTCString()})`
                                 });
                             } catch (error) {
                                 loaderContext.emitError(error);
