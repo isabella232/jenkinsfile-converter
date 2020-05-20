@@ -8,8 +8,9 @@ class VersionNumberResponder {
         req: express.Request,
         res: express.Response
     ) {
-        res.setHeader('Content-Type', 'application/json');
-        res.json(services.VersionNumber.versionNumber);
+        res.set('Content-Type', 'application/json').json(
+            services.VersionNumber.versionNumber
+        );
     }
 }
 
