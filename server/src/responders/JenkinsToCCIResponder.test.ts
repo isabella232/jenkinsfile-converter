@@ -36,6 +36,30 @@ const mockRes = () => {
 
 jest.mock('axios');
 jest.mock('../../assets/jfc-module.js');
+jest.mock('../../assets/cli.html');
+
+describe('webUI', () => {
+    const req = mockReq;
+    const res = mockRes();
+
+    beforeAll(async () => {
+        await JenkinsToCCIResponder.webUI(
+            mockServices,
+            (<unknown>req) as express.Request,
+            (<unknown>res) as express.Response
+        );
+    });
+
+    test('header', () => {
+        expect(res.status.mock.calls[0][0]).toBe(200);
+        expect(res.set.mock.calls[0][0]).toBe('Content-Type');
+        expect(res.set.mock.calls[0][1]).toBe('text/html; charset=UTF-8');
+    });
+
+    test('body', async () => {
+        expect(res.end.mock.calls[0][0]).toBe(require('../../assets/cli.html'));
+    });
+});
 
 describe('convertJenkinsfileToConfigYml', () => {
     const req = mockReq;

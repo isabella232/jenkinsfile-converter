@@ -23,6 +23,15 @@ class MainApp {
             VersionNumberResponder.getVersion
         );
 
+        // Show Web UI
+        this.expWrapper.armEndpoint('GET', '/i', JenkinsToCCIResponder.webUI);
+
+        // Convert Jenkinsfile to config.yml
+        this.expWrapper.armEndpoint(
+            'POST',
+            '/i/to-config-yml',
+            JenkinsToCCIResponder.convertJenkinsfileToConfigYml
+        );
         // '/i' is a shorthand
         this.expWrapper.armEndpoint(
             'POST',
@@ -35,12 +44,8 @@ class MainApp {
             '/i/do',
             JenkinsToCCIResponder.convertJenkinsfileToConfigYml
         );
-        this.expWrapper.armEndpoint(
-            'POST',
-            '/i/to-config-yml',
-            JenkinsToCCIResponder.convertJenkinsfileToConfigYml
-        );
 
+        // Debugging: Convert Jenkinsfile to its JSON notation
         this.expWrapper.armEndpoint(
             'POST',
             '/i/to-json',

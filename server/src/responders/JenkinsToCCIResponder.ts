@@ -1,4 +1,5 @@
 import * as axios from 'axios';
+import * as fs from 'fs';
 import * as util from 'util';
 
 import * as jfcModule from '../../assets/jfc-module.js';
@@ -9,7 +10,23 @@ import type { ExpressWrapper } from '../ExpressWrapper';
 
 declare const __JENKINS_TARGET: string;
 
+/* istanbul ignore next */
+require.extensions &&
+    (require.extensions['.html'] = (module: NodeJS.Module, filename: string) =>
+        (module.exports = fs.readFileSync(filename)));
+const cliHTML = require('../../assets/cli.html');
+
 class JenkinsToCCIResponder {
+    public static webUI(
+        services: ExpressWrapper['services'],
+        req: express.Request,
+        res: express.Response
+    ): void {
+        res.status(200)
+            .set('Content-Type', 'text/html; charset=UTF-8')
+            .end(cliHTML);
+    }
+
     public static convertJenkinsfileToConfigYml(
         services: ExpressWrapper['services'],
         req: express.Request,
