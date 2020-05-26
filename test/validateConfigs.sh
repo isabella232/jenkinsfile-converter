@@ -13,6 +13,7 @@ validate_configs() {
       if ! circleci config validate "${configs[i]}"
       then
         ((failed++)) 
+        cat ${configs[i]}
         echo "Failed to validate ${configs[i]}"
       else
         ((passed++))
@@ -25,7 +26,7 @@ validate_configs() {
   
   echo "${passed} tests passed out of $(( failed+passed ))"
   
-  if [ "$failed" > 0 ]
+  if [ $failed -gt 0 ]
   then
     exit 1
   fi
