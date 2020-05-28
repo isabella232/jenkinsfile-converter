@@ -8,6 +8,7 @@ pipeline {
    */
   environment {
     FOO = "BAR"
+    CREDENTIALS = credentials('xxx')
     BUILD_NUM_ENV = currentBuild.getNumber()
     ANOTHER_ENV = "${currentBuild.getNumber()}"
     INHERITED_ENV = "\${BUILD_NUM_ENV} is inherited"
@@ -18,6 +19,9 @@ pipeline {
 
   stages {
     stage("Environment") {
+      environment {
+        FOO = "LAR"
+      }
       steps {
         sh 'echo "FOO is $FOO"'
         // returns 'FOO is BAR'
