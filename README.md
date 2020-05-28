@@ -144,6 +144,10 @@ With regards to specific [Jenkinsfile steps](https://www.jenkins.io/doc/pipeline
 
 Please visit our [Contributing Guide](./.github/CONTRIBUTING.md) for information regarding contribution guidelines and local setup.
 
+## Feedback
+
+To share any general feedback regarding this project with the CircleCI team, please reach out to on our [Discuss forum](https://discuss.circleci.com/c/ecosystem/63) and use the `jenkins-converter` tag.
+
 ## License
 
 [MIT](https://opensource.org/licenses/MIT)
