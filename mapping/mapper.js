@@ -14,7 +14,7 @@ const { CircleWorkflowJobCondition } = require('../model/CircleWorkflowJobCondit
 const { fnPerVerb } = require('./mapper_steps.js');
 const { assignedFields } = require('./mapper_utils.js');
 const { mapConditions } = require('./mapper_conditions.js');
-const { mapEnvironment } = require('./mapper_directives.js');
+const { prepMapEnvironment } = require('./mapper_directives.js');
 
 const map = (arr) => {
   const config = new CircleConfig(2.1);
@@ -27,6 +27,7 @@ const map = (arr) => {
     return undefined;
   }
 
+  const mapEnvironment = prepMapEnvironment();
   mapEnvironment(pipeline, 'pipeline');
 
   const stages = pipeline['stages'];
@@ -36,12 +37,12 @@ const map = (arr) => {
     return undefined;
   }
 
-  mapStages(stages, config);
+  mapStages(stages, mapEnvironment, config);
 
   return config;
 };
 
-const mapStages = (stages, config) => {
+const mapStages = (stages, mapEnvironment, config) => {
   const workflow = new CircleWorkflowItem();
   // Hard-coded workflow name--no multiple workflow support yet
   config['workflows']['build-and-test'] = workflow;
@@ -62,16 +63,16 @@ const mapStages = (stages, config) => {
     }
 
     if (!stage.parallel) {
-      mapJob(stage, workflow, workflowJobConditionObj, config['jobs']);
+      mapJob(stage, mapEnvironment, workflow, workflowJobConditionObj, config['jobs']);
     } else {
       stage.parallel.forEach((parallelStage) => {
-        mapJob(parallelStage, workflow, workflowJobConditionObj, config['jobs']);
+        mapJob(parallelStage, mapEnvironment, workflow, workflowJobConditionObj, config['jobs']);
       });
     }
   });
 };
 
-const mapJob = (stage, workflow, conditions, config) => {
+const mapJob = (stage, mapEnvironment, workflow, conditions, config) => {
   let job = new CircleJob();
 
   job.docker = [{ image: 'cimg/base' }];
