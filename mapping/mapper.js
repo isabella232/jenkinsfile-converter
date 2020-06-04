@@ -14,44 +14,35 @@ const { CircleWorkflowJobCondition } = require('../model/CircleWorkflowJobCondit
 const { fnPerVerb } = require('./mapper_steps.js');
 const { assignedFields } = require('./mapper_utils.js');
 const { mapConditions } = require('./mapper_conditions.js');
+const { prepMapEnvironment } = require('./mapper_directives.js');
 
 const map = (arr) => {
   const config = new CircleConfig(2.1);
   const pipeline = arr['pipeline'];
-  const stages = pipeline['stages'];
 
   if (!pipeline) {
     console.log(
-      'pipeline object not found. Only declarative Jenkinsfiles are supported at this time.'
+      'Pipeline object not found. Only declarative Jenkinsfiles are supported at this time.'
     );
-  } else if (stages) {
-    mapStages(stages, config);
-  } else {
-    console.log('No stages detected in Jenkinsfile.');
+    return undefined;
   }
+
+  const mapEnvironment = prepMapEnvironment();
+  mapEnvironment(pipeline, 'pipeline');
+
+  const stages = pipeline['stages'];
+
+  if (!stages) {
+    console.log('No stages detected in Jenkinsfile.');
+    return undefined;
+  }
+
+  mapStages(stages, mapEnvironment, config);
 
   return config;
 };
 
-const mapJob = (stage, workflow, conditions, config) => {
-  let job = new CircleJob();
-
-  job[`docker`] = [{ image: 'cimg/base' }];
-
-  mapConditions(stage, conditions);
-
-  let workflowJobName = stage.name.replace(/ /g, '-').toLowerCase();
-  if (assignedFields(conditions)) {
-    workflow.jobs.push({ [workflowJobName]: conditions });
-  } else {
-    workflow.jobs.push(workflowJobName);
-  }
-
-  job.steps = fnPerVerb(stage.branches[0].steps);
-  config[workflowJobName] = job;
-};
-
-const mapStages = (stages, config) => {
+const mapStages = (stages, mapEnvironment, config) => {
   const workflow = new CircleWorkflowItem();
   // Hard-coded workflow name--no multiple workflow support yet
   config['workflows']['build-and-test'] = workflow;
@@ -72,27 +63,32 @@ const mapStages = (stages, config) => {
     }
 
     if (!stage.parallel) {
-      mapJob(stage, workflow, workflowJobConditionObj, config['jobs']);
+      mapJob(stage, mapEnvironment, workflow, workflowJobConditionObj, config['jobs']);
     } else {
       stage.parallel.forEach((parallelStage) => {
-        mapJob(parallelStage, workflow, workflowJobConditionObj, config['jobs']);
+        mapJob(parallelStage, mapEnvironment, workflow, workflowJobConditionObj, config['jobs']);
       });
     }
-
-    // if (envVars) {
-    //   envVars.forEach((envVar) => {
-    //     let key = envVar['key'];
-    //     let value = envVar['value'];
-
-    //     if (typeof value == 'object') {
-    //       // TODO: Here we would handle things such as 'credentials(xxxx)', for now just using the value itself.
-    //       // Currently grabbing the first argument from credentials(), need to check to see if there are possibly more to pass.
-    //       value = value['arguments'][0]['value'];
-    //     }
-    //     job.environment[key] = value;
-    //   });
-    // }
   });
+};
+
+const mapJob = (stage, mapEnvironment, workflow, conditions, config) => {
+  let job = new CircleJob();
+
+  job.docker = [{ image: 'cimg/base' }];
+  job.environment = mapEnvironment(stage, 'stage');
+
+  mapConditions(stage, conditions);
+
+  let workflowJobName = stage.name.replace(/ /g, '-').toLowerCase();
+  if (assignedFields(conditions)) {
+    workflow.jobs.push({ [workflowJobName]: conditions });
+  } else {
+    workflow.jobs.push(workflowJobName);
+  }
+
+  job.steps = fnPerVerb(stage.branches[0].steps);
+  config[workflowJobName] = job;
 };
 
 module.exports = { map };
