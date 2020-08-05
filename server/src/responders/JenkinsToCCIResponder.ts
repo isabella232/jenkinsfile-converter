@@ -94,6 +94,7 @@ class JenkinsToCCIResponder {
                         at: new Date().toUTCString(),
                         serverVersion: serverVersion,
                         calling: `${req.method} ${req.path}`,
+                        errorName: err.name,
                         reason: err ? err.message : '',
                         verbose: util.format(err)
                     },
