@@ -41,6 +41,7 @@ class ClientError extends CustomError {
 
 }
 
+// Unexpected low-level server error from Jenkins (as backend)
 class UpperStreamError extends ServerError {
     constructor(rid, msg, originalError, rawResponse) {
         super(rid, 'UpperStreamError', msg, originalError);
@@ -51,13 +52,17 @@ class UpperStreamError extends ServerError {
     }
 }
 
+// Invalid Jenkinsfile or unsupported plugin
+// TODO (maybe): Distinguish the two on server side
 class ParseFailure extends ClientError {
-    constructor(rid, msg, userInput) {
+    constructor(rid, msg, parserErrors, userInput) {
         super(rid, 'ParseFailure', msg);
+        this.parserErrors = parserErrors;
         this.userInput = userInput.toString();
     }
 }
 
+// Mapping function of JFC Core raised an error
 class MapperError extends ServerError {
     constructor(rid, msg, originalError, rawInput) {
         super(rid, 'MapperError', msg, originalError);

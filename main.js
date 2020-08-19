@@ -17,6 +17,7 @@ const jenkinsToCCI = async (jenkinsfile, rid = '') => {
     if (fromJenkins.data.result === 'failure') {
       const errorMsgArr = ['Failed to parse your Jenkinsfile. It happens especially if your Jenkinsfile is relying on unsupported plugins - in such cases, removing stanzas mentioned below will suppress the error.\nHere are error messages from the parser:'];
       const errorQueue = fromJenkins.data.errors.slice();
+      const parserErrors = [];
 
       let errCtr = 0;
 
@@ -29,11 +30,12 @@ const jenkinsToCCI = async (jenkinsfile, rid = '') => {
           }
         } else {
           errorMsgArr.push(`${++errCtr}. ${errorObj.error ? errorObj.error : errorObj}`);
+          parserErrors.push(errorObj.error ? errorObj.error : errorObj);
         }
       }
 
       isFinal = true;
-      throw new ParseFailure(rid, `${errorMsgArr.join('\n\n')}\n`, jenkinsfile);
+      throw new ParseFailure(rid, `${errorMsgArr.join('\n\n')}\n`, parserErrors, jenkinsfile);
     }
 
     if (!fromJenkins.data.json) {
