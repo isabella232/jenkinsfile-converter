@@ -160,13 +160,7 @@ class JenkinsToCCIResponder {
 
     private static httpErrorStatus(err: any): number {
         try {
-            switch (true) {
-                case err.errorIn === 'client':
-                    return 400;
-                case err.errorIn === 'server':
-                default:
-                    return 500;
-            }
+            return err.errorIn === 'client' ? 400 : 500;
         } catch (err) {
             return 500;
         }
