@@ -1,17 +1,13 @@
 import { JenkinsToCCIResponder } from './JenkinsToCCIResponder';
 
+import { serviceMocks } from '../services/ServiceMocks';
+
 import type * as express from 'express';
 
 const reqBody = 'groovy';
 const resBody = 'yaml or json';
 
-const mockServices = {
-    VersionNumber: {
-        versionNumber: 'jest'
-    }
-};
-
-const mockReq = {
+const reqMock = {
     body: reqBody
 };
 
@@ -24,7 +20,20 @@ const mockAxiosPost = jest.fn((url, data, options) => {
 const mockAxiosPostWithReject = jest.fn().mockRejectedValue(new Error());
 
 const mockJenkinsToCCI = jest.fn().mockResolvedValue(resBody);
-const mockJenkinsToCCIWithReject = jest.fn().mockRejectedValue(new Error());
+const mockJenkinsToCCIWithServerError = jest
+    .fn()
+    .mockRejectedValue(new Error('server error'));
+const mockJenkinsToCCIWithClientError = jest.fn().mockRejectedValue(
+    (() => {
+        const ret: any = new Error('client error');
+
+        ret.errorIn = 'client';
+        ret.parserErrors = ['Upset'];
+
+        return ret;
+    })()
+);
+const mockJenkinsToCCIWithBrokenError = jest.fn().mockRejectedValue(void 0);
 
 const mockRes = () => {
     return {
@@ -35,16 +44,17 @@ const mockRes = () => {
 };
 
 jest.mock('axios');
+jest.mock('../ExpressWrapper');
 jest.mock('../../assets/jfc-module.js');
 jest.mock('../../assets/cli.html');
 
 describe('webUI', () => {
-    const req = mockReq;
+    const req = reqMock;
     const res = mockRes();
 
     beforeAll(async () => {
         await JenkinsToCCIResponder.webUI(
-            mockServices,
+            serviceMocks,
             (<unknown>req) as express.Request,
             (<unknown>res) as express.Response
         );
@@ -62,25 +72,42 @@ describe('webUI', () => {
 });
 
 describe('convertJenkinsfileToConfigYml', () => {
-    const req = mockReq;
+    const req = reqMock;
     const res = mockRes();
 
     beforeAll(async () => {
         const jfcModule = require('../../assets/jfc-module.js');
 
         jfcModule.jenkinsToCCI.mockImplementationOnce(mockJenkinsToCCI);
-        jfcModule.jenkinsToCCI.mockImplementationOnce(
-            mockJenkinsToCCIWithReject
-        );
-
         await JenkinsToCCIResponder.convertJenkinsfileToConfigYml(
-            mockServices,
+            serviceMocks,
             (<unknown>req) as express.Request,
             (<unknown>res) as express.Response
         );
 
+        jfcModule.jenkinsToCCI.mockImplementationOnce(
+            mockJenkinsToCCIWithServerError
+        );
         await JenkinsToCCIResponder.convertJenkinsfileToConfigYml(
-            mockServices,
+            serviceMocks,
+            (<unknown>req) as express.Request,
+            (<unknown>res) as express.Response
+        );
+
+        jfcModule.jenkinsToCCI.mockImplementationOnce(
+            mockJenkinsToCCIWithClientError
+        );
+        await JenkinsToCCIResponder.convertJenkinsfileToConfigYml(
+            serviceMocks,
+            (<unknown>req) as express.Request,
+            (<unknown>res) as express.Response
+        );
+
+        jfcModule.jenkinsToCCI.mockImplementationOnce(
+            mockJenkinsToCCIWithBrokenError
+        );
+        await JenkinsToCCIResponder.convertJenkinsfileToConfigYml(
+            serviceMocks,
             (<unknown>req) as express.Request,
             (<unknown>res) as express.Response
         );
@@ -92,24 +119,43 @@ describe('convertJenkinsfileToConfigYml', () => {
 
     test('header', () => {
         expect(res.status.mock.calls[0][0]).toBe(200);
-        expect(res.set.mock.calls[0][0]).toBe('Content-Type');
-        expect(res.set.mock.calls[0][1]).toBe('text/x-yaml');
+        expect(res.set.mock.calls[0][0]).toBe('X-RID');
+        expect(res.set.mock.calls[1][0]).toBe('Content-Type');
+        expect(res.set.mock.calls[1][1]).toBe('text/x-yaml');
     });
 
     test('body', async () => {
         expect(res.end.mock.calls[0][0]).toBe(resBody);
     });
 
-    test('error-handling', () => {
+    test('server error', () => {
         expect(res.status.mock.calls[1][0]).toBe(500);
-        expect(res.set.mock.calls[1][0]).toBe('Content-Type');
-        expect(res.set.mock.calls[1][1]).toBe('application/json');
+        expect(res.set.mock.calls[2][0]).toBe('X-RID');
+        expect(res.set.mock.calls[3][0]).toBe('Content-Type');
+        expect(res.set.mock.calls[3][1]).toBe('application/json');
+        expect(JSON.parse(res.end.mock.calls[1][0]).message).toEqual(
+            'server error'
+        );
         expect(res.end).toHaveBeenCalled();
+    });
+
+    test('client error', () => {
+        expect(res.status.mock.calls[2][0]).toBe(400);
+        expect(JSON.parse(res.end.mock.calls[2][0]).message).toEqual(
+            'client error'
+        );
+        expect(
+            JSON.parse(res.end.mock.calls[2][0]).parserErrors
+        ).toStrictEqual(['Upset']);
+    });
+
+    test('broken error', () => {
+        expect(res.status.mock.calls[3][0]).toBe(500);
     });
 });
 
 describe('convertJenkinsfileToJSON', () => {
-    const req = mockReq;
+    const req = reqMock;
     const res = mockRes();
     const customJenkins = 'https://jenkins.example.com/';
 
@@ -121,7 +167,7 @@ describe('convertJenkinsfileToJSON', () => {
         axios.post.mockImplementationOnce(mockAxiosPostWithReject);
 
         await JenkinsToCCIResponder.convertJenkinsfileToJSON(
-            mockServices,
+            serviceMocks,
             (<unknown>req) as express.Request,
             (<unknown>res) as express.Response
         );
@@ -131,13 +177,13 @@ describe('convertJenkinsfileToJSON', () => {
         });
 
         await JenkinsToCCIResponder.convertJenkinsfileToJSON(
-            mockServices,
+            serviceMocks,
             (<unknown>req) as express.Request,
             (<unknown>res) as express.Response
         );
 
         await JenkinsToCCIResponder.convertJenkinsfileToJSON(
-            mockServices,
+            serviceMocks,
             (<unknown>req) as express.Request,
             (<unknown>res) as express.Response
         );

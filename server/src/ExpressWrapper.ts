@@ -2,6 +2,7 @@ import * as bodyParser from 'body-parser';
 import * as express from 'express';
 
 import { VersionNumberService } from './services/VersionNumberService';
+import { AmplitudeClientService } from './services/AmplitudeClientService';
 
 import type * as http from 'http';
 
@@ -10,7 +11,8 @@ class ExpressWrapper {
     private readonly listenPort = 28080;
 
     public services = {
-        VersionNumber: new VersionNumberService()
+        VersionNumber: new VersionNumberService(),
+        AmplitudeClient: new AmplitudeClientService()
     };
 
     private app: express.Express = express();
