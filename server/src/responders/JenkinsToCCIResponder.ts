@@ -91,7 +91,10 @@ class JenkinsToCCIResponder {
             )
             .then((ret) => {
                 services.AmplitudeClient.logEvent({
-                    event_type: '200: POST /i/to-json'
+                    event_type: '200: POST /i/to-json',
+                    event_properties: {
+                        rid
+                    }
                 });
 
                 res.status(200)
