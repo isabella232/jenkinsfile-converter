@@ -65,7 +65,6 @@ class ConfigStorageClientService {
     }
 
     protected async dummyUploadImpl(): Promise<void> {
-        console.log('baa');
         return;
     }
 }
