@@ -1,7 +1,7 @@
 import * as AWS from 'aws-sdk';
 
 class ConfigStorageClientService {
-    public upload: (key: string, body: Buffer | string) => Promise<void>;
+    public upload: (key: string, body: Buffer | string) => void;
 
     constructor() {
         if (
@@ -28,18 +28,6 @@ class ConfigStorageClientService {
         s3Client: AWS.S3,
         key: string,
         body: Buffer | string
-    ): Promise<void> {
-        return new Promise(
-            this.S3UploadExecutor.bind(this, s3Client, key, body)
-        );
-    }
-
-    protected S3UploadExecutor(
-        s3Client: AWS.S3,
-        key: string,
-        body: Buffer | string,
-        resolve: () => void,
-        reject: (err: any) => void
     ): void {
         s3Client.upload(
             {
@@ -47,24 +35,15 @@ class ConfigStorageClientService {
                 Key: key,
                 Body: body
             },
-            this.S3UploadCallback.bind(this, resolve, reject)
+            this.S3UploadCallback
         );
     }
 
-    protected S3UploadCallback(
-        resolve: () => void,
-        reject: (err: any) => void,
-        err: Error,
-        data: AWS.S3.ManagedUpload.SendData
-    ): void {
-        if (data) {
-            resolve();
-        } else {
-            reject(err);
-        }
+    protected S3UploadCallback(err: Error): void {
+        err && console.error(err);
     }
 
-    protected async dummyUploadImpl(): Promise<void> {
+    protected dummyUploadImpl(): void {
         return;
     }
 }
