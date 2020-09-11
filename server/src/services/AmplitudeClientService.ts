@@ -5,7 +5,7 @@ import * as Amplitude from '@amplitude/node';
 declare const __BUILD_VERSION: string;
 
 class AmplitudeClientService {
-    public client = process.env.JFC_AMPLITUDE_API_KEY
+    protected client = process.env.JFC_AMPLITUDE_API_KEY
         ? Amplitude.init(process.env.JFC_AMPLITUDE_API_KEY)
         : {
               logEvent: () => {}
