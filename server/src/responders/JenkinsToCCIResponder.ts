@@ -24,7 +24,7 @@ class JenkinsToCCIResponder {
         req: express.Request,
         res: express.Response
     ): void {
-        JenkinsToCCIResponder.sendUserRequestEvent(
+        JenkinsToCCIResponder.fireUserRequestEvent(
             uuid.v4(),
             services.AmplitudeClient,
             req
@@ -46,7 +46,7 @@ class JenkinsToCCIResponder {
 
         res.set('X-RID', rid);
 
-        JenkinsToCCIResponder.sendUserRequestEvent(
+        JenkinsToCCIResponder.fireUserRequestEvent(
             rid,
             services.AmplitudeClient,
             req
@@ -57,7 +57,7 @@ class JenkinsToCCIResponder {
         return jfcModule
             .jenkinsToCCI(req.body, rid)
             .then((ret) => {
-                JenkinsToCCIResponder.send200Event(
+                JenkinsToCCIResponder.fire200Event(
                     rid,
                     services.AmplitudeClient,
                     req
@@ -86,7 +86,7 @@ class JenkinsToCCIResponder {
     ): Promise<void> {
         const rid = uuid.v4();
 
-        JenkinsToCCIResponder.sendUserRequestEvent(
+        JenkinsToCCIResponder.fireUserRequestEvent(
             rid,
             services.AmplitudeClient,
             req
@@ -103,7 +103,7 @@ class JenkinsToCCIResponder {
                 }
             )
             .then((ret) => {
-                JenkinsToCCIResponder.send200Event(
+                JenkinsToCCIResponder.fire200Event(
                     rid,
                     services.AmplitudeClient,
                     req
@@ -183,7 +183,7 @@ class JenkinsToCCIResponder {
         }
     }
 
-    private static sendUserRequestEvent(
+    private static fireUserRequestEvent(
         rid: string,
         ampCli: AmplitudeClientService,
         req: express.Request
@@ -197,13 +197,13 @@ class JenkinsToCCIResponder {
         });
     }
 
-    private static send200Event(
+    private static fire200Event(
         rid: string,
         ampCli: AmplitudeClientService,
         req: express.Request
     ): void {
         ampCli.logEvent({
-            event_type: 'jfc-sending-response',
+            event_type: 'jfc-responding',
             event_properties: {
                 rid,
                 calling: `${req.method} ${req.path}`,
