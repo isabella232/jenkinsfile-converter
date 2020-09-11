@@ -24,9 +24,11 @@ class JenkinsToCCIResponder {
         req: express.Request,
         res: express.Response
     ): void {
-        services.AmplitudeClient.logEvent({
-            event_type: 'GET /i'
-        });
+        JenkinsToCCIResponder.sendUserRequestEvent(
+            uuid.v4(),
+            services.AmplitudeClient,
+            req
+        );
 
         // TODO: Redirect to Developer Hub?
 
@@ -44,17 +46,22 @@ class JenkinsToCCIResponder {
 
         res.set('X-RID', rid);
 
+        JenkinsToCCIResponder.sendUserRequestEvent(
+            rid,
+            services.AmplitudeClient,
+            req
+        );
+
         // TODO: Upload incoming Jenkinsfile to S3
 
         return jfcModule
             .jenkinsToCCI(req.body, rid)
             .then((ret) => {
-                services.AmplitudeClient.logEvent({
-                    event_type: '200: POST /i',
-                    event_properties: {
-                        rid
-                    }
-                });
+                JenkinsToCCIResponder.send200Event(
+                    rid,
+                    services.AmplitudeClient,
+                    req
+                );
 
                 // TODO: Upload the outgoing config.yml to S3
 
@@ -79,6 +86,12 @@ class JenkinsToCCIResponder {
     ): Promise<void> {
         const rid = uuid.v4();
 
+        JenkinsToCCIResponder.sendUserRequestEvent(
+            rid,
+            services.AmplitudeClient,
+            req
+        );
+
         return axios.default
             .post(
                 typeof __JENKINS_TARGET === typeof '' && __JENKINS_TARGET !== ''
@@ -90,12 +103,11 @@ class JenkinsToCCIResponder {
                 }
             )
             .then((ret) => {
-                services.AmplitudeClient.logEvent({
-                    event_type: '200: POST /i/to-json',
-                    event_properties: {
-                        rid
-                    }
-                });
+                JenkinsToCCIResponder.send200Event(
+                    rid,
+                    services.AmplitudeClient,
+                    req
+                );
 
                 res.status(200)
                     .set('Content-Type', 'application/json')
@@ -139,16 +151,18 @@ class JenkinsToCCIResponder {
             }
 
             ampCli.logEvent({
-                event_type: `${httpStatus}: ${bodyObj.calling}`,
+                event_type: `jfc-conversion-failure`,
                 event_properties: {
                     rid,
-                    errorName: err.name
+                    calling: `${req.method} ${req.path}`,
+                    errorName: err.name,
+                    parserErrors: bodyObj.parserErrors
                     // TODO: Consider submiting more anonymous information
                 }
             });
         } catch (secondError) {
             ampCli.logEvent({
-                event_type: 'Someone raised an irregular error',
+                event_type: 'jfc-irregular-error',
                 event_properties: {
                     rid,
                     errorFormatted: util.format(secondError)
@@ -167,6 +181,35 @@ class JenkinsToCCIResponder {
         } catch (err) {
             return 500;
         }
+    }
+
+    private static sendUserRequestEvent(
+        rid: string,
+        ampCli: AmplitudeClientService,
+        req: express.Request
+    ): void {
+        ampCli.logEvent({
+            event_type: 'jfc-user-request',
+            event_properties: {
+                rid,
+                calling: `${req.method} ${req.path}`
+            }
+        });
+    }
+
+    private static send200Event(
+        rid: string,
+        ampCli: AmplitudeClientService,
+        req: express.Request
+    ): void {
+        ampCli.logEvent({
+            event_type: 'jfc-sending-response',
+            event_properties: {
+                rid,
+                calling: `${req.method} ${req.path}`,
+                status: 200
+            }
+        });
     }
 }
 
