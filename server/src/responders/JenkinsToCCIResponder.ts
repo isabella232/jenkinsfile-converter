@@ -52,7 +52,10 @@ class JenkinsToCCIResponder {
             req
         );
 
-        // TODO: Upload incoming Jenkinsfile to S3
+        services.ConfigStorageClient.upload(
+            `user-input-jenkinsfiles/${rid}`,
+            req.body
+        );
 
         return jfcModule
             .jenkinsToCCI(req.body, rid)
@@ -63,7 +66,10 @@ class JenkinsToCCIResponder {
                     req
                 );
 
-                // TODO: Upload the outgoing config.yml to S3
+                services.ConfigStorageClient.upload(
+                    `delivered-config-yml/${rid}`,
+                    ret
+                );
 
                 res.status(200).set('Content-Type', 'text/x-yaml').end(ret); // TODO: Change to return JSON instead
             })

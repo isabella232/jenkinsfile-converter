@@ -3,6 +3,7 @@ import * as express from 'express';
 
 import { VersionNumberService } from './services/VersionNumberService';
 import { AmplitudeClientService } from './services/AmplitudeClientService';
+import { ConfigStorageClientService } from './services/ConfigStorageClientService';
 
 import type * as http from 'http';
 
@@ -12,7 +13,8 @@ class ExpressWrapper {
 
     public services = {
         VersionNumber: new VersionNumberService(),
-        AmplitudeClient: new AmplitudeClientService()
+        AmplitudeClient: new AmplitudeClientService(),
+        ConfigStorageClient: new ConfigStorageClientService()
     };
 
     private app: express.Express = express();
