@@ -1,7 +1,6 @@
 import * as axios from 'axios';
 import * as fs from 'fs';
 import * as util from 'util';
-import * as uuid from 'uuid';
 
 import * as jfcModule from '../../assets/jfc-module.js';
 
@@ -34,9 +33,9 @@ class JenkinsToCCIResponder {
         res: express.Response
     ): Promise<void> {
         return jfcModule
-            .jenkinsToCCI(req.body, uuid.v4())
+            .jenkinsToCCI(req.body)
             .then((ret) => {
-                res.status(200).set('Content-Type', 'text/x-yaml').end(ret); // TODO: Change to return JSON instead
+                res.status(200).set('Content-Type', 'text/x-yaml').end(ret);
             })
             .catch((error) => {
                 JenkinsToCCIResponder.returnErrorMessage(
@@ -84,38 +83,19 @@ class JenkinsToCCIResponder {
         err: any,
         serverVersion: string
     ): void {
-        const bodyObj: { [key: string]: any } = {
-            greeting:
-                'Conversion failed. Please contact support with this entire error message.',
-            at: new Date().toUTCString(),
-            serverVersion: serverVersion,
-            calling: `${req.method} ${req.path}`,
-            errorName: err.name,
-            message: err ? err.message : '',
-            errorFormatted: util.format(err) // TODO: Send error details in a machine-readable format
-        };
+        res.status(500).set('Content-Type', 'text/plain; charset=UTF-8')
+            .end(`Conversion failed. Please include the message below when you contact support for this error.
 
-        if (err.parserErrors) {
-            bodyObj.parserErrors = err.parserErrors;
-        }
+At: ${new Date().toUTCString()}
+Server version: ${serverVersion}
+Calling: ${req.method} ${req.path}
+           
+Message:
+${util.format(err)}
 
-        res.status(JenkinsToCCIResponder.httpErrorStatus(err))
-            .set('Content-Type', 'application/json')
-            .end(JSON.stringify(bodyObj, null, 4));
-    }
-
-    private static httpErrorStatus(err: any): number {
-        try {
-            switch (true) {
-                case err.errorIn === 'client':
-                    return 400;
-                case err.errorIn === 'server':
-                default:
-                    return 500;
-            }
-        } catch (err) {
-            return 500;
-        }
+Request body (stringified):
+${JSON.stringify(req.body.toString('utf-8'))}
+`);
     }
 }
 
