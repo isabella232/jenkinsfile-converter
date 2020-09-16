@@ -1,12 +1,8 @@
 import { VersionNumberResponder } from './VersionNumberResponder';
 
-import type * as express from 'express';
+import { serviceMocks } from '../services/ServiceMocks';
 
-const mockServices = {
-    VersionNumber: {
-        versionNumber: 'jest'
-    }
-};
+import type * as express from 'express';
 
 const mockRes = () => {
     return {
@@ -20,7 +16,7 @@ describe('getVersion', () => {
         const res = mockRes();
 
         VersionNumberResponder.getVersion(
-            mockServices,
+            serviceMocks,
             null,
             (<unknown>res) as express.Response
         );
