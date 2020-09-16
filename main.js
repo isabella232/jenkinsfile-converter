@@ -1,15 +1,19 @@
 const axios = require('axios');
 const querystring = require('querystring');
+const util = require('util');
 
 const { map } = require('./mapping/mapper.js');
-const { UpperStreamError, ParseFailure, MapperError } = require('./errors.js');
 
 const jenkinsTarget = (typeof __JENKINS_TARGET === typeof '' && __JENKINS_TARGET !== '') ? __JENKINS_TARGET : 'https://jenkinsto.cc/i/to-json';
 
+const formatErrorDetails = (err) => {
+  return `  ${util.format(err).replace(/\n/g, '\n  ')}`;
+};
+
 // Main from here
-const jenkinsToCCI = async (jenkinsfile, rid = '') => {
+const jenkinsToCCI = async (jenkinsfile) => {
   const fromJenkins = (await axios.post(jenkinsTarget, querystring.stringify({ jenkinsfile: jenkinsfile.toString('utf-8') })).catch((err) => {
-    throw (new UpperStreamError(rid, 'Upper stream infrastructural error.', err));
+    throw (new Error(`Error in parser. Details:\n${formatErrorDetails(err)}`));
   })).data;
   let isFinal = false;
 
@@ -17,7 +21,6 @@ const jenkinsToCCI = async (jenkinsfile, rid = '') => {
     if (fromJenkins.data.result === 'failure') {
       const errorMsgArr = ['Failed to parse your Jenkinsfile. It happens especially if your Jenkinsfile is relying on unsupported plugins - in such cases, removing stanzas mentioned below will suppress the error.\nHere are error messages from the parser:'];
       const errorQueue = fromJenkins.data.errors.slice();
-      const parserErrors = [];
 
       let errCtr = 0;
 
@@ -30,20 +33,14 @@ const jenkinsToCCI = async (jenkinsfile, rid = '') => {
           }
         } else {
           errorMsgArr.push(`${++errCtr}. ${errorObj.error ? errorObj.error : errorObj}`);
-          parserErrors.push(errorObj.error ? errorObj.error : errorObj);
         }
       }
 
       isFinal = true;
-      throw new ParseFailure(rid, `${errorMsgArr.join('\n\n')}\n`, parserErrors, jenkinsfile);
-    }
-
-    if (!fromJenkins.data.json) {
-      isFinal = true;
-      throw new UpperStreamError(rid, 'Uppser stream returned unconsistent reponse without valid body.', void 0, fromJenkins);
+      throw new Error(`${errorMsgArr.join('\n\n')}\n`);
     }
   } catch (err) {
-    throw isFinal ? err : new UpperStreamError(rid, `Upper stream returned broken response.`, err, fromJenkins)
+    throw isFinal ? err : new Error(`Error in verification of response from parser. Details:\n${formatErrorDetails(err)}`)
   }
 
   try {
@@ -52,10 +49,9 @@ const jenkinsToCCI = async (jenkinsfile, rid = '') => {
     const configYml = circleConfig.toYAML();
 
     isFinal = true;
-    // TODO: Metrics submission
     return configYml;
   } catch (err) {
-    throw new MapperError(rid, `Error in mapping.`, err, fromJenkins.data.json);
+    throw new Error(`Error in mapping. Details:\n${formatErrorDetails(err)}`);
   }
 };
 
