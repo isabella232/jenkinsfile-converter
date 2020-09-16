@@ -1,3 +1,5 @@
+import * as os from 'os';
+
 import * as Amplitude from '@amplitude/node';
 
 class AmplitudeClientService {
@@ -8,6 +10,7 @@ class AmplitudeClientService {
           };
 
     public logEvent(event: Amplitude.Event) {
+        event.device_id = event.device_id ? event.device_id : os.hostname();
         this.client.logEvent(event);
     }
 }
