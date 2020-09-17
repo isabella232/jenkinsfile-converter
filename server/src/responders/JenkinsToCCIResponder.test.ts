@@ -172,9 +172,7 @@ describe('convertJenkinsfileToJSON', () => {
             (<unknown>res) as express.Response
         );
 
-        Object.defineProperty(global, '__JENKINS_TARGET', {
-            value: 'https://jenkins.example.com/'
-        });
+        process.env.JFC_JENKINS_URL = 'https://jenkins.example.com/';
 
         await JenkinsToCCIResponder.convertJenkinsfileToJSON(
             serviceMocks,
