@@ -1,7 +1,8 @@
 version: 2.1
 
 orbs:
-  docker: circleci/docker@1.0.1
+  aws-ecr: circleci/aws-ecr@6.12.2
+  docker: circleci/docker@1.4.0
 
 jobs:
   build-and-unit-test-base:
@@ -98,8 +99,6 @@ jobs:
       - run:
           name: webpack base module
           command: npm run build
-          environment:
-            __JENKINS_TARGET: "http://jenkins.jfc-containers.local:8080/pipeline-model-converter/toJson"
       - store_artifacts:
           path: dist/jfc-module.js
       - run:
@@ -122,8 +121,6 @@ jobs:
           command: |
             export __BUILD_VERSION="$(cat version.txt)"
             yarn build
-          environment:
-            __JENKINS_TARGET: "http://jenkins.jfc-containers.local:8080/pipeline-model-converter/toJson"
           working_directory: server
       - store_artifacts:
           path: server/dist/server.js
@@ -140,7 +137,7 @@ jobs:
 
   build-docker-image:
     machine:
-      image: ubuntu-1604:202004-01
+      image: ubuntu-2004:202008-01
     steps:
       - attach_workspace:
           at: ./
@@ -148,13 +145,12 @@ jobs:
           name: Restore version info
           command: |
             echo "export __BUILD_VERSION=\"$(cat version.txt)\"" >> $BASH_ENV
-      - docker/check:
-          registry: $DOCKER_REGISTRY
       - docker/build:
-          image: $DOCKER_IMAGE_NAME
+          image: $JFC_MONOLITH_IMAGE_NAME
           tag: $__BUILD_VERSION
+      - aws-ecr/ecr-login
       - docker/push:
-          image: $DOCKER_IMAGE_NAME
+          image: $JFC_MONOLITH_IMAGE_NAME
           tag: $__BUILD_VERSION
 
 workflows:
@@ -184,4 +180,4 @@ workflows:
       - build-docker-image:
           requires:
             - clean-build-for-docker-image
-          context: jfc-dockerhub
+          context: jfc-ecr
