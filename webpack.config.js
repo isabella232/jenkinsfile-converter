@@ -33,8 +33,7 @@ module.exports = (env, argv) => {
                     `${process.env.__BUILD_VERSION || 'unversioned'}-${
                     argv.mode === 'production' ? 'prod' : 'devel'
                     }`
-                ),
-                __JENKINS_TARGET: JSON.stringify(process.env.__JENKINS_TARGET || '')
+                )
             })
         ],
         target: 'node'

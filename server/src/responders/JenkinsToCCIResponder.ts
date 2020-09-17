@@ -10,8 +10,6 @@ import type * as express from 'express';
 import type { ExpressWrapper } from '../ExpressWrapper';
 import type { AmplitudeClientService } from '../services/AmplitudeClientService.js';
 
-declare const __JENKINS_TARGET: string;
-
 /* istanbul ignore next */
 require.extensions &&
     (require.extensions['.html'] = (module: NodeJS.Module, filename: string) =>
@@ -100,8 +98,8 @@ class JenkinsToCCIResponder {
 
         return axios.default
             .post(
-                typeof __JENKINS_TARGET === typeof '' && __JENKINS_TARGET !== ''
-                    ? __JENKINS_TARGET
+                process.env.JFC_JENKINS_URL
+                    ? process.env.JFC_JENKINS_URL
                     : 'https://jenkinsto.cc/i/to-json',
                 req.body.toString('utf-8'),
                 {
