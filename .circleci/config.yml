@@ -146,10 +146,12 @@ jobs:
           command: |
             echo "export __BUILD_VERSION=\"$(cat version.txt)\"" >> $BASH_ENV
       - docker/build:
+          registry: $AWS_ECR_ACCOUNT_URL
           image: $JFC_MONOLITH_IMAGE_NAME
           tag: $__BUILD_VERSION
       - aws-ecr/ecr-login
       - docker/push:
+          registry: $AWS_ECR_ACCOUNT_URL
           image: $JFC_MONOLITH_IMAGE_NAME
           tag: $__BUILD_VERSION
 
